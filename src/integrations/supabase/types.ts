@@ -51,18 +51,21 @@ export type Database = {
         Row: {
           business_name: string
           created_at: string | null
+          email: string | null
           id: string
           updated_at: string | null
         }
         Insert: {
           business_name: string
           created_at?: string | null
+          email?: string | null
           id: string
           updated_at?: string | null
         }
         Update: {
           business_name?: string
           created_at?: string | null
+          email?: string | null
           id?: string
           updated_at?: string | null
         }
