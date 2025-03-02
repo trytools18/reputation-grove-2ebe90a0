@@ -7,7 +7,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Trash2, GripVertical, Move, Laptop, Smartphone, AlignLeft, CheckSquare, Circle, ListOrdered, Edit2 } from "lucide-react"
+import { Plus, Trash2, GripVertical, Move, Laptop, Smartphone, AlignLeft, CheckSquare, Circle, ListOrdered, Edit2, Save } from "lucide-react"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/components/ui/use-toast"
+import { useNavigate } from "react-router-dom"
+import { useSession } from "@/lib/auth"
 
 // Question types
 const QUESTION_TYPES = [
@@ -53,6 +57,12 @@ const SurveyCreator = () => {
   const [activeTab, setActiveTab] = useState("design")
   const [previewDevice, setPreviewDevice] = useState("desktop")
   const [redirectThreshold, setRedirectThreshold] = useState(4)
+  const [googleMapsUrl, setGoogleMapsUrl] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
+  
+  const { toast } = useToast()
+  const navigate = useNavigate()
+  const { user } = useSession()
 
   const addQuestion = (type: string) => {
     const newQuestion: Question = {
@@ -85,6 +95,85 @@ const SurveyCreator = () => {
     setQuestions(questions.filter(q => q.id !== id))
   }
 
+  const saveSurvey = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save your survey",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!surveyTitle.trim()) {
+      toast({
+        title: "Survey title required",
+        description: "Please provide a title for your survey",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!googleMapsUrl.trim()) {
+      toast({
+        title: "Google Maps URL required",
+        description: "Please provide a Google Maps URL for redirection",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setIsSaving(true)
+
+    try {
+      // Insert form
+      const { data: formData, error: formError } = await supabase
+        .from('forms')
+        .insert({
+          restaurant_name: surveyTitle,
+          google_maps_url: googleMapsUrl,
+          minimum_positive_rating: redirectThreshold,
+          user_id: user.id
+        })
+        .select()
+        .single()
+
+      if (formError) throw formError
+
+      // Insert questions
+      const questionsToInsert = questions.map((question, index) => ({
+        form_id: formData.id,
+        text: question.title,
+        type: question.type,
+        options: question.type === 'multiplechoice' ? question.options : null,
+        order: index
+      }))
+
+      const { error: questionsError } = await supabase
+        .from('questions')
+        .insert(questionsToInsert)
+
+      if (questionsError) throw questionsError
+
+      toast({
+        title: "Survey saved",
+        description: "Your survey has been saved successfully",
+      })
+
+      // Navigate to dashboard or the survey page
+      navigate('/dashboard')
+    } catch (error: any) {
+      console.error("Error saving survey:", error)
+      toast({
+        title: "Error saving survey",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive"
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="container mx-auto px-6 py-12">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -110,7 +199,23 @@ const SurveyCreator = () => {
                 <span>Preview</span>
               </TabsTrigger>
             </TabsList>
-            <Button>Save Survey</Button>
+            <Button 
+              onClick={saveSurvey} 
+              disabled={isSaving}
+              className="flex items-center gap-1"
+            >
+              {isSaving ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  <span>Save Survey</span>
+                </>
+              )}
+            </Button>
           </div>
         </div>
 
@@ -128,6 +233,7 @@ const SurveyCreator = () => {
                   value={surveyTitle} 
                   onChange={(e) => setSurveyTitle(e.target.value)} 
                   className="max-w-lg"
+                  placeholder="Enter your restaurant name"
                 />
               </div>
               <div className="space-y-2">
@@ -138,6 +244,7 @@ const SurveyCreator = () => {
                   onChange={(e) => setSurveyDescription(e.target.value)}
                   className="max-w-lg"
                   rows={3}
+                  placeholder="Tell customers what this survey is about"
                 />
               </div>
             </CardContent>
@@ -351,6 +458,8 @@ const SurveyCreator = () => {
                       id="google-url" 
                       placeholder="https://g.page/your-restaurant/review" 
                       className="w-full"
+                      value={googleMapsUrl}
+                      onChange={(e) => setGoogleMapsUrl(e.target.value)}
                     />
                     <p className="text-sm text-foreground/60 mt-2">
                       Enter your Google Maps review URL. This is where customers will be redirected.
