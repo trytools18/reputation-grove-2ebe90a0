@@ -1,11 +1,17 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
+import { Menu, X, LogOut } from "lucide-react"
+import { useNavigate, Link } from "react-router-dom"
+import { useSession, signOut } from "@/lib/auth"
+import { useToast } from "@/hooks/use-toast"
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { user, isLoading } = useSession()
+  const navigate = useNavigate()
+  const { toast } = useToast()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,6 +25,27 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      })
+      navigate("/")
+    } catch (error: any) {
+      toast({
+        title: "Error logging out",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleLogin = () => {
+    navigate("/auth")
+  }
 
   return (
     <header
@@ -47,13 +74,32 @@ const Navbar = () => {
           <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
             About
           </a>
+          {user && (
+            <Link to="/create-survey" className="text-foreground/80 hover:text-foreground transition-colors">
+              Dashboard
+            </Link>
+          )}
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="outline" className="rounded-full px-5">
-            Log in
-          </Button>
-          <Button className="rounded-full px-5">Sign up</Button>
+          {isLoading ? (
+            <div className="h-10 w-20 bg-gray-200 animate-pulse rounded-full"></div>
+          ) : user ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium">Hi, {user.email}</span>
+              <Button variant="outline" className="rounded-full px-5 flex items-center gap-2" onClick={handleLogout}>
+                <LogOut size={16} />
+                Log out
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Button variant="outline" className="rounded-full px-5" onClick={handleLogin}>
+                Log in
+              </Button>
+              <Button className="rounded-full px-5" onClick={() => navigate("/auth?tab=signup")}>Sign up</Button>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -92,9 +138,32 @@ const Navbar = () => {
             >
               About
             </a>
+            {user && (
+              <Link 
+                to="/create-survey" 
+                className="py-2 text-foreground/80 hover:text-foreground transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
             <div className="pt-4 flex flex-col space-y-3">
-              <Button variant="outline" className="w-full rounded-full">Log in</Button>
-              <Button className="w-full rounded-full">Sign up</Button>
+              {isLoading ? (
+                <div className="h-10 w-full bg-gray-200 animate-pulse rounded-full"></div>
+              ) : user ? (
+                <>
+                  <div className="py-2 text-sm font-medium">Hi, {user.email}</div>
+                  <Button variant="outline" className="w-full rounded-full flex items-center justify-center gap-2" onClick={handleLogout}>
+                    <LogOut size={16} />
+                    Log out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" className="w-full rounded-full" onClick={handleLogin}>Log in</Button>
+                  <Button className="w-full rounded-full" onClick={() => navigate("/auth?tab=signup")}>Sign up</Button>
+                </>
+              )}
             </div>
           </div>
         </div>
