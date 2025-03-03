@@ -9,6 +9,7 @@ import { useSession } from "@/lib/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check, Copy, Clipboard, Coffee, Scissors, Hotel, Utensils, ListFilter } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 type TemplateQuestion = {
   id: string;
@@ -153,19 +154,39 @@ const Templates = () => {
       
       // Create questions from template
       if (selectedTemplate.questions && selectedTemplate.questions.length > 0) {
-        const questionsToInsert = selectedTemplate.questions.map((question, index) => ({
-          form_id: formData.id,
-          text: question.text,
-          type: question.type,
-          options: question.options,
-          order: index
-        }));
+        const questionsToInsert = selectedTemplate.questions.map((question, index) => {
+          // Ensure type value is valid according to the constraint
+          let validType = question.type;
+          
+          // Map template question types to valid question types if needed
+          // This ensures we're using the exact values expected by the database constraint
+          if (question.type === 'multiplechoice') {
+            validType = 'multiplechoice';
+          } else if (question.type === 'rating') {
+            validType = 'rating';
+          } else if (question.type === 'text') {
+            validType = 'text';
+          }
+          
+          return {
+            form_id: formData.id,
+            text: question.text,
+            type: validType,
+            options: question.options,
+            order: index
+          };
+        });
+        
+        console.log("Questions to insert:", questionsToInsert);
         
         const { error: questionsError } = await supabase
           .from('questions')
           .insert(questionsToInsert);
           
-        if (questionsError) throw questionsError;
+        if (questionsError) {
+          console.error("Error details:", questionsError);
+          throw questionsError;
+        }
       }
       
       toast({
