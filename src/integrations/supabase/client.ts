@@ -11,7 +11,7 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Define the allowed question types based on the database constraint
 export const QUESTION_TYPES = {
   RATING: 'rating',
-  MULTIPLE_CHOICE: 'multiple_choice',
+  MULTIPLE_CHOICE: 'multiple-choice',
   TEXT: 'text'
 };
 
