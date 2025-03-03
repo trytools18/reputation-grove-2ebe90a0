@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,30 +7,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Trash2, GripVertical, Move, Laptop, Smartphone, AlignLeft, CheckSquare, Circle, ListOrdered, Edit2, Save, ArrowLeft } from "lucide-react"
-import { supabase, QUESTION_TYPES } from "@/integrations/supabase/client"
+import { supabase, QUESTION_TYPES, FRONTEND_TO_DB_TYPE, DB_TO_FRONTEND_TYPE } from "@/integrations/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useSession } from "@/lib/auth"
 
 // Question type definitions for UI display
 const QUESTION_TYPE_UI = [
-  { id: QUESTION_TYPES.RATING, label: "Rating", icon: <ListOrdered className="h-4 w-4" /> },
-  { id: QUESTION_TYPES.MULTIPLE_CHOICE, label: "Multiple Choice", icon: <CheckSquare className="h-4 w-4" /> },
-  { id: QUESTION_TYPES.TEXT, label: "Text Response", icon: <AlignLeft className="h-4 w-4" /> }
+  { id: "rating", label: "Rating", icon: <ListOrdered className="h-4 w-4" /> },
+  { id: "multiplechoice", label: "Multiple Choice", icon: <CheckSquare className="h-4 w-4" /> },
+  { id: "text", label: "Text Response", icon: <AlignLeft className="h-4 w-4" /> }
 ]
-
-// Map between frontend display types and database types
-const FRONTEND_TO_DB_TYPE = {
-  "multiplechoice": QUESTION_TYPES.MULTIPLE_CHOICE,
-  "rating": QUESTION_TYPES.RATING,
-  "text": QUESTION_TYPES.TEXT
-}
-
-const DB_TO_FRONTEND_TYPE = {
-  [QUESTION_TYPES.MULTIPLE_CHOICE]: "multiplechoice",
-  [QUESTION_TYPES.RATING]: "rating",
-  [QUESTION_TYPES.TEXT]: "text"
-}
 
 interface Question {
   id: string
@@ -153,22 +139,20 @@ const SurveyCreator = () => {
     const newQuestion: Question = {
       id: `q${Date.now()}`,
       type,
-      title: type === QUESTION_TYPES.RATING 
+      title: type === "rating" 
         ? "How would you rate..." 
-        : type === QUESTION_TYPES.MULTIPLE_CHOICE 
+        : type === "multiplechoice" 
           ? "Select all that apply..." 
           : "Any additional comments?",
       required: false
     }
     
-    if (type === QUESTION_TYPES.RATING) {
+    if (type === "rating") {
       newQuestion.maxRating = 5
     }
     
-    if (type === QUESTION_TYPES.MULTIPLE_CHOICE) {
+    if (type === "multiplechoice") {
       newQuestion.options = ["Option 1", "Option 2", "Option 3"]
-      // Convert to frontend display type for the UI
-      newQuestion.type = DB_TO_FRONTEND_TYPE[type];
     }
     
     setQuestions([...questions, newQuestion])
@@ -259,16 +243,13 @@ const SurveyCreator = () => {
       // Insert questions - ensure we map frontend types to database types
       const questionsToInsert = questions.map((question, index) => {
         // Map frontend question types to database types
-        let dbType = question.type;
-        if (FRONTEND_TO_DB_TYPE[question.type]) {
-          dbType = FRONTEND_TO_DB_TYPE[question.type];
-        }
+        const dbType = FRONTEND_TO_DB_TYPE[question.type] || question.type;
         
         return {
           form_id: formData.id,
           text: question.title,
           type: dbType, // Use correct database type
-          options: (question.type === "multiplechoice") ? question.options : null,
+          options: (question.type === 'multiplechoice') ? question.options : null,
           order: index
         };
       });
@@ -399,7 +380,7 @@ const SurveyCreator = () => {
                     <SelectValue placeholder="Add question" />
                   </SelectTrigger>
                   <SelectContent>
-                    {QUESTION_TYPES.map((type) => (
+                    {QUESTION_TYPE_UI.map((type) => (
                       <SelectItem key={type.id} value={type.id} className="flex items-center gap-2">
                         <div className="flex items-center gap-2">
                           {type.icon}
@@ -712,4 +693,3 @@ const SurveyCreator = () => {
 }
 
 export default SurveyCreator
-

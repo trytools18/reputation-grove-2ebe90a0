@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,6 @@ const SurveyView = () => {
       
       setIsLoading(true);
       try {
-        // Fetch the form
         const { data: formData, error: formError } = await supabase
           .from('forms')
           .select('*')
@@ -33,7 +31,6 @@ const SurveyView = () => {
           
         if (formError) throw formError;
         
-        // Fetch questions
         const { data: questionsData, error: questionsError } = await supabase
           .from('questions')
           .select('*')
@@ -45,7 +42,6 @@ const SurveyView = () => {
         setSurvey(formData);
         setQuestions(questionsData || []);
         
-        // Initialize answers object
         const initialAnswers: Record<string, any> = {};
         questionsData?.forEach(q => {
           if (q.type === QUESTION_TYPES.RATING) {
@@ -104,14 +100,12 @@ const SurveyView = () => {
     setIsSubmitting(true);
     
     try {
-      // Calculate average rating
       const ratingQuestions = questions.filter(q => q.type === QUESTION_TYPES.RATING);
       const ratingValues = ratingQuestions.map(q => Number(answers[q.id]) || 0);
       const averageRating = ratingValues.length > 0
         ? ratingValues.reduce((sum, val) => sum + val, 0) / ratingValues.length
         : 0;
       
-      // Submit to database
       const { error } = await supabase
         .from('submissions')
         .insert({
@@ -127,7 +121,6 @@ const SurveyView = () => {
         description: "Your responses have been submitted successfully."
       });
       
-      // Redirect to Google Maps if rating is high enough
       if (averageRating >= survey.minimum_positive_rating && survey.google_maps_url) {
         setTimeout(() => {
           window.location.href = survey.google_maps_url;

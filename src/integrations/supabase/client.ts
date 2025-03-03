@@ -15,4 +15,17 @@ export const QUESTION_TYPES = {
   TEXT: 'text'
 };
 
+// Map between frontend display types and database types
+export const FRONTEND_TO_DB_TYPE = {
+  "multiplechoice": QUESTION_TYPES.MULTIPLE_CHOICE,
+  "rating": QUESTION_TYPES.RATING,
+  "text": QUESTION_TYPES.TEXT
+};
+
+export const DB_TO_FRONTEND_TYPE = {
+  [QUESTION_TYPES.MULTIPLE_CHOICE]: "multiplechoice",
+  [QUESTION_TYPES.RATING]: "rating",
+  [QUESTION_TYPES.TEXT]: "text"
+};
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
