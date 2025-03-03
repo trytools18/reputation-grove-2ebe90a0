@@ -15,10 +15,17 @@ import { useSession } from "@/lib/auth"
 
 // Question types
 const QUESTION_TYPES = [
-  { id: "multiplechoice", label: "Multiple Choice", icon: <CheckSquare className="h-4 w-4" /> },
   { id: "rating", label: "Rating", icon: <ListOrdered className="h-4 w-4" /> },
+  { id: "multiple_choice", label: "Multiple Choice", icon: <CheckSquare className="h-4 w-4" /> },
   { id: "text", label: "Text Response", icon: <AlignLeft className="h-4 w-4" /> }
 ]
+
+// Map to convert frontend question types to database question types
+const QUESTION_TYPE_MAP = {
+  multiplechoice: "multiple_choice",
+  rating: "rating",
+  text: "text"
+}
 
 interface Question {
   id: string
@@ -109,16 +116,24 @@ const SurveyCreator = () => {
       
       // Transform questions to our format
       if (questionsData) {
-        const transformedQuestions: Question[] = questionsData.map(q => ({
-          id: q.id,
-          type: q.type,
-          title: q.text,
-          required: false, // We could add a required field to our questions table
-          options: q.type === 'multiplechoice' ? q.options : undefined,
-          maxRating: q.type === 'rating' ? 5 : undefined
-        }))
+        const transformedQuestions: Question[] = questionsData.map(q => {
+          // Map database question types to frontend question types
+          let frontendType = q.type;
+          if (q.type === 'multiple_choice') {
+            frontendType = 'multiplechoice';
+          }
+          
+          return {
+            id: q.id,
+            type: frontendType,
+            title: q.text,
+            required: false, // We could add a required field to our questions table
+            options: q.type === 'multiple_choice' ? q.options : undefined,
+            maxRating: q.type === 'rating' ? 5 : undefined
+          };
+        });
         
-        setQuestions(transformedQuestions)
+        setQuestions(transformedQuestions);
       }
       
     } catch (error: any) {
@@ -137,7 +152,7 @@ const SurveyCreator = () => {
       type,
       title: type === "rating" 
         ? "How would you rate..." 
-        : type === "multiplechoice" 
+        : type === "multiple_choice" 
           ? "Select all that apply..." 
           : "Any additional comments?",
       required: false
@@ -147,7 +162,7 @@ const SurveyCreator = () => {
       newQuestion.maxRating = 5
     }
     
-    if (type === "multiplechoice") {
+    if (type === "multiple_choice") {
       newQuestion.options = ["Option 1", "Option 2", "Option 3"]
     }
     
@@ -236,20 +251,30 @@ const SurveyCreator = () => {
         setFormId(data.id)
       }
 
-      // Insert questions
-      const questionsToInsert = questions.map((question, index) => ({
-        form_id: formData.id,
-        text: question.title,
-        type: question.type,
-        options: question.type === 'multiplechoice' ? question.options : null,
-        order: index
-      }))
+      // Insert questions - ensure we map frontend types to database types
+      const questionsToInsert = questions.map((question, index) => {
+        // Map frontend question types to database question types
+        let dbType = question.type;
+        if (question.type === 'multiplechoice') {
+          dbType = 'multiple_choice';
+        }
+        
+        return {
+          form_id: formData.id,
+          text: question.title,
+          type: dbType, // Use correct database type
+          options: (question.type === 'multiplechoice') ? question.options : null,
+          order: index
+        };
+      });
 
+      console.log("Inserting questions:", JSON.stringify(questionsToInsert, null, 2));
+      
       const { error: questionsError } = await supabase
         .from('questions')
-        .insert(questionsToInsert)
+        .insert(questionsToInsert);
 
-      if (questionsError) throw questionsError
+      if (questionsError) throw questionsError;
 
       toast({
         title: isEditing ? "Survey updated" : "Survey saved",
@@ -684,3 +709,4 @@ const SurveyCreator = () => {
 }
 
 export default SurveyCreator
+
