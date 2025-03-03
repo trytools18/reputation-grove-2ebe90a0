@@ -67,7 +67,6 @@ const SurveyCreator = () => {
   const location = useLocation()
 
   useEffect(() => {
-    // Check if we're editing an existing survey
     const queryParams = new URLSearchParams(location.search)
     const id = queryParams.get("id")
     
@@ -82,7 +81,6 @@ const SurveyCreator = () => {
     if (!user) return
 
     try {
-      // Fetch the form
       const { data: formData, error: formError } = await supabase
         .from('forms')
         .select('*')
@@ -92,12 +90,10 @@ const SurveyCreator = () => {
         
       if (formError) throw formError
       
-      // Set form data
       setSurveyTitle(formData.restaurant_name)
       setGoogleMapsUrl(formData.google_maps_url)
       setRedirectThreshold(formData.minimum_positive_rating)
       
-      // Fetch questions
       const { data: questionsData, error: questionsError } = await supabase
         .from('questions')
         .select('*')
@@ -106,17 +102,15 @@ const SurveyCreator = () => {
         
       if (questionsError) throw questionsError
       
-      // Transform questions to our format
       if (questionsData) {
         const transformedQuestions: Question[] = questionsData.map(q => {
-          // Map database question types to frontend question types
           const frontendType = DB_TO_FRONTEND_TYPE[q.type] || q.type;
           
           return {
             id: q.id,
             type: frontendType,
             title: q.text,
-            required: false, // We could add a required field to our questions table
+            required: false,
             options: q.type === QUESTION_TYPES.MULTIPLE_CHOICE ? q.options : undefined,
             maxRating: q.type === QUESTION_TYPES.RATING ? 5 : undefined
           };
@@ -200,7 +194,6 @@ const SurveyCreator = () => {
       let formData: any
 
       if (isEditing && formId) {
-        // Update existing form
         const { data, error: formError } = await supabase
           .from('forms')
           .update({
@@ -215,7 +208,6 @@ const SurveyCreator = () => {
         if (formError) throw formError
         formData = data
         
-        // Delete existing questions
         const { error: deleteError } = await supabase
           .from('questions')
           .delete()
@@ -223,7 +215,6 @@ const SurveyCreator = () => {
           
         if (deleteError) throw deleteError
       } else {
-        // Insert new form
         const { data, error: formError } = await supabase
           .from('forms')
           .insert({
@@ -240,25 +231,31 @@ const SurveyCreator = () => {
         setFormId(data.id)
       }
 
-      // Insert questions - ensure we map frontend types to database types
       const questionsToInsert = questions.map((question, index) => {
-        // Map frontend question types to database types
         const dbType = FRONTEND_TO_DB_TYPE[question.type] || question.type;
         
         return {
           form_id: formData.id,
           text: question.title,
-          type: dbType, // Use correct database type
-          options: (question.type === 'multiplechoice') ? question.options : null,
+          type: dbType,
+          options: question.type === 'multiplechoice' ? question.options : null,
           order: index
         };
       });
       
-      const { error: questionsError } = await supabase
+      console.log('Questions to insert:', questionsToInsert);
+      
+      const { data: insertedQuestions, error: questionsError } = await supabase
         .from('questions')
-        .insert(questionsToInsert);
+        .insert(questionsToInsert)
+        .select();
 
-      if (questionsError) throw questionsError;
+      if (questionsError) {
+        console.error("Error inserting questions:", questionsError);
+        throw questionsError;
+      }
+      
+      console.log('Inserted questions response:', insertedQuestions);
 
       toast({
         title: isEditing ? "Survey updated" : "Survey saved",
@@ -267,7 +264,6 @@ const SurveyCreator = () => {
           : "Your survey has been saved successfully",
       })
 
-      // Navigate to the share page
       navigate(`/survey/${formData.id}/share`)
     } catch (error: any) {
       console.error("Error saving survey:", error)
