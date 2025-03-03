@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,14 +43,12 @@ const Templates = () => {
     const fetchTemplates = async () => {
       setIsLoading(true);
       try {
-        // Fetch all templates
         const { data: templatesData, error: templatesError } = await supabase
           .from('survey_templates')
           .select('*');
           
         if (templatesError) throw templatesError;
         
-        // Fetch questions for each template
         if (templatesData) {
           const templatesWithQuestions = await Promise.all(
             templatesData.map(async (template) => {
@@ -72,7 +69,6 @@ const Templates = () => {
           
           setTemplates(templatesWithQuestions);
           
-          // Set selected category based on user's business category
           if (user) {
             const { data: profileData } = await supabase
               .from('profiles')
@@ -129,7 +125,6 @@ const Templates = () => {
     setIsCreating(true);
     
     try {
-      // Get user profile to get business name
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('business_name, business_category')
@@ -138,12 +133,11 @@ const Templates = () => {
         
       if (profileError) throw profileError;
       
-      // Create the form
       const { data: formData, error: formError } = await supabase
         .from('forms')
         .insert({
           restaurant_name: profileData.business_name || "My Survey",
-          google_maps_url: "https://maps.google.com", // Default placeholder
+          google_maps_url: "https://maps.google.com",
           minimum_positive_rating: 4,
           user_id: user.id
         })
@@ -152,41 +146,46 @@ const Templates = () => {
         
       if (formError) throw formError;
       
-      // Create questions from template
-      if (selectedTemplate.questions && selectedTemplate.questions.length > 0) {
-        const questionsToInsert = selectedTemplate.questions.map((question, index) => {
-          // Ensure type value is valid according to the constraint
-          let validType = question.type;
-          
-          // Map template question types to valid question types if needed
-          // This ensures we're using the exact values expected by the database constraint
-          if (question.type === 'multiplechoice') {
+      const { data: typesData } = await supabase
+        .from('questions')
+        .select('type')
+        .limit(1);
+      
+      const questionsToInsert = selectedTemplate.questions?.map((question, index) => {
+        let validType;
+        
+        switch(question.type.toLowerCase()) {
+          case 'multiplechoice':
             validType = 'multiplechoice';
-          } else if (question.type === 'rating') {
+            break;
+          case 'rating':
             validType = 'rating';
-          } else if (question.type === 'text') {
+            break;
+          case 'text':
             validType = 'text';
-          }
-          
-          return {
-            form_id: formData.id,
-            text: question.text,
-            type: validType,
-            options: question.options,
-            order: index
-          };
-        });
-        
-        console.log("Questions to insert:", questionsToInsert);
-        
-        const { error: questionsError } = await supabase
-          .from('questions')
-          .insert(questionsToInsert);
-          
-        if (questionsError) {
-          console.error("Error details:", questionsError);
-          throw questionsError;
+            break;
+          default:
+            validType = 'text';
         }
+        
+        return {
+          form_id: formData.id,
+          text: question.text,
+          type: validType,
+          options: question.options,
+          order: index
+        };
+      });
+      
+      console.log("Questions to insert:", questionsToInsert);
+      
+      const { error: questionsError } = await supabase
+        .from('questions')
+        .insert(questionsToInsert);
+        
+      if (questionsError) {
+        console.error("Error details:", questionsError);
+        throw questionsError;
       }
       
       toast({
@@ -194,7 +193,6 @@ const Templates = () => {
         description: "Your survey has been created from the template",
       });
       
-      // Navigate to the survey creator to edit the newly created survey
       navigate(`/create-survey?id=${formData.id}`);
       
     } catch (error: any) {
@@ -209,12 +207,10 @@ const Templates = () => {
     }
   };
 
-  // Filter templates by selected category
   const filteredTemplates = selectedCategory
     ? templates.filter(template => template.category === selectedCategory)
     : templates;
 
-  // Get unique categories from templates
   const categories = [...new Set(templates.map(template => template.category))];
 
   if (isLoading) {
@@ -379,7 +375,6 @@ const Templates = () => {
   );
 };
 
-// Template Card Component
 const TemplateCard = ({ 
   template, 
   onUse,
