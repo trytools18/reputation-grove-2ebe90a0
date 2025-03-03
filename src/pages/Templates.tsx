@@ -147,16 +147,23 @@ const Templates = () => {
         
       if (formError) throw formError;
       
-      // Get valid question types from database
-      const { data: typesData } = await supabase
+      // First, let's query the database to find out what valid types are accepted
+      const { data: validTypes, error: typesError } = await supabase
         .from('questions')
         .select('type')
-        .limit(1);
+        .limit(10);
+      
+      if (typesError) {
+        console.error("Error fetching valid question types:", typesError);
+        throw typesError;
+      }
+      
+      console.log("Valid question types from DB:", validTypes);
       
       // Map template question types to valid database question types
       const questionsToInsert = selectedTemplate.questions?.map((question, index) => {
         // Make sure to convert the template question type to a valid database question type
-        // The error was related to invalid question types
+        // Based on database constraints, valid types are likely 'text', 'rating', or 'multiplechoice'
         let dbType;
         
         // Convert template question type to a valid database type
@@ -175,6 +182,8 @@ const Templates = () => {
             dbType = 'text';
         }
         
+        console.log(`Converting question type from ${question.type} to ${dbType}`);
+        
         return {
           form_id: formData.id,
           text: question.text,
@@ -185,6 +194,15 @@ const Templates = () => {
       });
       
       console.log("Questions to insert:", questionsToInsert);
+      
+      // Before inserting, let's log the first question to see its structure
+      if (questionsToInsert && questionsToInsert.length > 0) {
+        console.log("First question details:", {
+          text: questionsToInsert[0].text,
+          type: questionsToInsert[0].type,
+          options: questionsToInsert[0].options
+        });
+      }
       
       const { error: questionsError } = await supabase
         .from('questions')
