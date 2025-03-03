@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, QUESTION_TYPES } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
 const SurveyView = () => {
@@ -48,9 +48,9 @@ const SurveyView = () => {
         // Initialize answers object
         const initialAnswers: Record<string, any> = {};
         questionsData?.forEach(q => {
-          if (q.type === 'rating') {
+          if (q.type === QUESTION_TYPES.RATING) {
             initialAnswers[q.id] = 0;
-          } else if (q.type === 'multiplechoice') {
+          } else if (q.type === QUESTION_TYPES.MULTIPLE_CHOICE) {
             initialAnswers[q.id] = [];
           } else {
             initialAnswers[q.id] = '';
@@ -105,7 +105,7 @@ const SurveyView = () => {
     
     try {
       // Calculate average rating
-      const ratingQuestions = questions.filter(q => q.type === 'rating');
+      const ratingQuestions = questions.filter(q => q.type === QUESTION_TYPES.RATING);
       const ratingValues = ratingQuestions.map(q => Number(answers[q.id]) || 0);
       const averageRating = ratingValues.length > 0
         ? ratingValues.reduce((sum, val) => sum + val, 0) / ratingValues.length

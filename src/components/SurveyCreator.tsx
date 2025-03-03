@@ -8,23 +8,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Trash2, GripVertical, Move, Laptop, Smartphone, AlignLeft, CheckSquare, Circle, ListOrdered, Edit2, Save, ArrowLeft } from "lucide-react"
-import { supabase } from "@/integrations/supabase/client"
+import { supabase, QUESTION_TYPES } from "@/integrations/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useSession } from "@/lib/auth"
 
-// Question types
-const QUESTION_TYPES = [
-  { id: "rating", label: "Rating", icon: <ListOrdered className="h-4 w-4" /> },
-  { id: "multiple_choice", label: "Multiple Choice", icon: <CheckSquare className="h-4 w-4" /> },
-  { id: "text", label: "Text Response", icon: <AlignLeft className="h-4 w-4" /> }
+// Question type definitions for UI display
+const QUESTION_TYPE_UI = [
+  { id: QUESTION_TYPES.RATING, label: "Rating", icon: <ListOrdered className="h-4 w-4" /> },
+  { id: QUESTION_TYPES.MULTIPLE_CHOICE, label: "Multiple Choice", icon: <CheckSquare className="h-4 w-4" /> },
+  { id: QUESTION_TYPES.TEXT, label: "Text Response", icon: <AlignLeft className="h-4 w-4" /> }
 ]
 
-// Map to convert frontend question types to database question types
-const QUESTION_TYPE_MAP = {
-  multiplechoice: "multiple_choice",
-  rating: "rating",
-  text: "text"
+// Map between frontend display types and database types
+const FRONTEND_TO_DB_TYPE = {
+  "multiplechoice": QUESTION_TYPES.MULTIPLE_CHOICE,
+  "rating": QUESTION_TYPES.RATING,
+  "text": QUESTION_TYPES.TEXT
+}
+
+const DB_TO_FRONTEND_TYPE = {
+  [QUESTION_TYPES.MULTIPLE_CHOICE]: "multiplechoice",
+  [QUESTION_TYPES.RATING]: "rating",
+  [QUESTION_TYPES.TEXT]: "text"
 }
 
 interface Question {
@@ -118,18 +124,15 @@ const SurveyCreator = () => {
       if (questionsData) {
         const transformedQuestions: Question[] = questionsData.map(q => {
           // Map database question types to frontend question types
-          let frontendType = q.type;
-          if (q.type === 'multiple_choice') {
-            frontendType = 'multiplechoice';
-          }
+          const frontendType = DB_TO_FRONTEND_TYPE[q.type] || q.type;
           
           return {
             id: q.id,
             type: frontendType,
             title: q.text,
             required: false, // We could add a required field to our questions table
-            options: q.type === 'multiple_choice' ? q.options : undefined,
-            maxRating: q.type === 'rating' ? 5 : undefined
+            options: q.type === QUESTION_TYPES.MULTIPLE_CHOICE ? q.options : undefined,
+            maxRating: q.type === QUESTION_TYPES.RATING ? 5 : undefined
           };
         });
         
@@ -150,20 +153,22 @@ const SurveyCreator = () => {
     const newQuestion: Question = {
       id: `q${Date.now()}`,
       type,
-      title: type === "rating" 
+      title: type === QUESTION_TYPES.RATING 
         ? "How would you rate..." 
-        : type === "multiple_choice" 
+        : type === QUESTION_TYPES.MULTIPLE_CHOICE 
           ? "Select all that apply..." 
           : "Any additional comments?",
       required: false
     }
     
-    if (type === "rating") {
+    if (type === QUESTION_TYPES.RATING) {
       newQuestion.maxRating = 5
     }
     
-    if (type === "multiple_choice") {
+    if (type === QUESTION_TYPES.MULTIPLE_CHOICE) {
       newQuestion.options = ["Option 1", "Option 2", "Option 3"]
+      // Convert to frontend display type for the UI
+      newQuestion.type = DB_TO_FRONTEND_TYPE[type];
     }
     
     setQuestions([...questions, newQuestion])
@@ -253,22 +258,20 @@ const SurveyCreator = () => {
 
       // Insert questions - ensure we map frontend types to database types
       const questionsToInsert = questions.map((question, index) => {
-        // Map frontend question types to database question types
+        // Map frontend question types to database types
         let dbType = question.type;
-        if (question.type === 'multiplechoice') {
-          dbType = 'multiple_choice';
+        if (FRONTEND_TO_DB_TYPE[question.type]) {
+          dbType = FRONTEND_TO_DB_TYPE[question.type];
         }
         
         return {
           form_id: formData.id,
           text: question.title,
           type: dbType, // Use correct database type
-          options: (question.type === 'multiplechoice') ? question.options : null,
+          options: (question.type === "multiplechoice") ? question.options : null,
           order: index
         };
       });
-
-      console.log("Inserting questions:", JSON.stringify(questionsToInsert, null, 2));
       
       const { error: questionsError } = await supabase
         .from('questions')
