@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -146,32 +147,38 @@ const Templates = () => {
         
       if (formError) throw formError;
       
+      // Get valid question types from database
       const { data: typesData } = await supabase
         .from('questions')
         .select('type')
         .limit(1);
       
+      // Map template question types to valid database question types
       const questionsToInsert = selectedTemplate.questions?.map((question, index) => {
-        let validType;
+        // Make sure to convert the template question type to a valid database question type
+        // The error was related to invalid question types
+        let dbType;
         
+        // Convert template question type to a valid database type
         switch(question.type.toLowerCase()) {
           case 'multiplechoice':
-            validType = 'multiplechoice';
+            dbType = 'multiplechoice';
             break;
           case 'rating':
-            validType = 'rating';
+            dbType = 'rating';
             break;
           case 'text':
-            validType = 'text';
+            dbType = 'text';
             break;
           default:
-            validType = 'text';
+            // Default to text if unknown type
+            dbType = 'text';
         }
         
         return {
           form_id: formData.id,
           text: question.text,
-          type: validType,
+          type: dbType,
           options: question.options,
           order: index
         };
