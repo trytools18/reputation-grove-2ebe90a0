@@ -15,6 +15,7 @@ const SurveyView = () => {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -124,15 +125,31 @@ const SurveyView = () => {
   };
 
   const submitSurvey = async () => {
-    if (!survey) return;
+    if (!survey || !id) return;
     
     setIsSubmitting(true);
+    setError(null);
     
     try {
       console.log("Submitting answers:", answers);
       
+      // Validate answers - at least try to answer one question
+      const hasAnsweredSomething = Object.values(answers).some(answer => {
+        if (Array.isArray(answer) && answer.length > 0) return true;
+        if (typeof answer === 'number' && answer > 0) return true;
+        if (typeof answer === 'string' && answer.trim() !== '') return true;
+        return false;
+      });
+      
+      if (!hasAnsweredSomething) {
+        throw new Error("Please answer at least one question");
+      }
+      
       const ratingQuestions = questions.filter(q => q.type === QUESTION_TYPES.RATING);
-      const ratingValues = ratingQuestions.map(q => Number(answers[q.id]) || 0);
+      const ratingValues = ratingQuestions
+        .map(q => Number(answers[q.id]) || 0)
+        .filter(val => val > 0); // Only count answered ratings
+      
       const averageRating = ratingValues.length > 0
         ? ratingValues.reduce((sum, val) => sum + val, 0) / ratingValues.length
         : 0;
@@ -157,6 +174,8 @@ const SurveyView = () => {
         description: "Your responses have been submitted successfully."
       });
       
+      setSubmissionSuccess(true);
+      
       // If the average rating is high enough and there's a Google Maps URL, redirect
       if (averageRating >= survey.minimum_positive_rating && survey.google_maps_url) {
         toast({
@@ -166,7 +185,7 @@ const SurveyView = () => {
         
         setTimeout(() => {
           window.location.href = survey.google_maps_url;
-        }, 2000);
+        }, 3000);
       }
       
     } catch (error: any) {
@@ -176,6 +195,7 @@ const SurveyView = () => {
         description: error.message || "Could not submit your feedback",
         variant: "destructive"
       });
+      setError(error.message || "Could not submit your feedback");
     } finally {
       setIsSubmitting(false);
     }
@@ -195,8 +215,41 @@ const SurveyView = () => {
         <Card className="max-w-xl mx-auto">
           <CardHeader>
             <CardTitle>Survey Not Found</CardTitle>
-            <CardDescription>The survey you're looking for does not exist.</CardDescription>
+            <CardDescription>The survey you're looking for does not exist or may have been deleted.</CardDescription>
           </CardHeader>
+          <CardFooter>
+            <Button variant="outline" onClick={() => window.history.back()}>Go Back</Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  if (submissionSuccess) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Thank You!</CardTitle>
+            <CardDescription>Your feedback has been submitted successfully.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-center mb-4">
+              {survey.google_maps_url ? "You'll be redirected to Google Maps to leave a review." : "We appreciate your time."}
+            </p>
+            {survey.google_maps_url && (
+              <div className="flex justify-center">
+                <a 
+                  href={survey.google_maps_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline flex items-center"
+                >
+                  Open Google Maps
+                </a>
+              </div>
+            )}
+          </CardContent>
         </Card>
       </div>
     );
@@ -267,6 +320,9 @@ const SurveyView = () => {
           )}
         </CardContent>
         <CardFooter>
+          {error && (
+            <div className="text-red-500 mb-3 w-full text-center">{error}</div>
+          )}
           <Button 
             className="w-full" 
             onClick={submitSurvey}

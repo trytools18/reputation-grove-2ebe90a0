@@ -16,7 +16,14 @@ import SurveyShare from "./pages/SurveyShare";
 import SurveyView from "./pages/SurveyView";
 import { useSession, getUserProfile } from "./lib/auth";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useSession();
@@ -142,7 +149,7 @@ const App = () => (
               </ProtectedRoute>
             }
           />
-          {/* This route is for public survey viewing and submission */}
+          {/* Public survey viewing and submission route - accessible to anonymous users */}
           <Route path="/s/:id" element={<SurveyView />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
