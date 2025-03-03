@@ -49,24 +49,33 @@ export type Database = {
       }
       profiles: {
         Row: {
+          business_category: string | null
           business_name: string
+          city: string | null
           created_at: string | null
           email: string | null
           id: string
+          onboarding_completed: boolean | null
           updated_at: string | null
         }
         Insert: {
+          business_category?: string | null
           business_name: string
+          city?: string | null
           created_at?: string | null
           email?: string | null
           id: string
+          onboarding_completed?: boolean | null
           updated_at?: string | null
         }
         Update: {
+          business_category?: string | null
           business_name?: string
+          city?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
+          onboarding_completed?: boolean | null
           updated_at?: string | null
         }
         Relationships: []
