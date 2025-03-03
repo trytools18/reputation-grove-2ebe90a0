@@ -1,5 +1,5 @@
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -7,10 +7,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Trash2, GripVertical, Move, Laptop, Smartphone, AlignLeft, CheckSquare, Circle, ListOrdered, Edit2, Save } from "lucide-react"
+import { Plus, Trash2, GripVertical, Move, Laptop, Smartphone, AlignLeft, CheckSquare, Circle, ListOrdered, Edit2, Save, ArrowLeft } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { useSession } from "@/lib/auth"
 
 // Question types
@@ -59,10 +59,77 @@ const SurveyCreator = () => {
   const [redirectThreshold, setRedirectThreshold] = useState(4)
   const [googleMapsUrl, setGoogleMapsUrl] = useState("")
   const [isSaving, setIsSaving] = useState(false)
+  const [formId, setFormId] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
   
   const { toast } = useToast()
   const navigate = useNavigate()
   const { user } = useSession()
+  const location = useLocation()
+
+  useEffect(() => {
+    // Check if we're editing an existing survey
+    const queryParams = new URLSearchParams(location.search)
+    const id = queryParams.get("id")
+    
+    if (id) {
+      setFormId(id)
+      setIsEditing(true)
+      fetchSurveyData(id)
+    }
+  }, [location])
+
+  const fetchSurveyData = async (id: string) => {
+    if (!user) return
+
+    try {
+      // Fetch the form
+      const { data: formData, error: formError } = await supabase
+        .from('forms')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .single()
+        
+      if (formError) throw formError
+      
+      // Set form data
+      setSurveyTitle(formData.restaurant_name)
+      setGoogleMapsUrl(formData.google_maps_url)
+      setRedirectThreshold(formData.minimum_positive_rating)
+      
+      // Fetch questions
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('form_id', id)
+        .order('order', { ascending: true })
+        
+      if (questionsError) throw questionsError
+      
+      // Transform questions to our format
+      if (questionsData) {
+        const transformedQuestions: Question[] = questionsData.map(q => ({
+          id: q.id,
+          type: q.type,
+          title: q.text,
+          required: false, // We could add a required field to our questions table
+          options: q.type === 'multiplechoice' ? q.options : undefined,
+          maxRating: q.type === 'rating' ? 5 : undefined
+        }))
+        
+        setQuestions(transformedQuestions)
+      }
+      
+    } catch (error: any) {
+      console.error("Error fetching survey data:", error)
+      toast({
+        title: "Error loading survey",
+        description: error.message || "Could not load the survey data",
+        variant: "destructive"
+      })
+    }
+  }
 
   const addQuestion = (type: string) => {
     const newQuestion: Question = {
@@ -126,19 +193,48 @@ const SurveyCreator = () => {
     setIsSaving(true)
 
     try {
-      // Insert form
-      const { data: formData, error: formError } = await supabase
-        .from('forms')
-        .insert({
-          restaurant_name: surveyTitle,
-          google_maps_url: googleMapsUrl,
-          minimum_positive_rating: redirectThreshold,
-          user_id: user.id
-        })
-        .select()
-        .single()
+      let formData: any
 
-      if (formError) throw formError
+      if (isEditing && formId) {
+        // Update existing form
+        const { data, error: formError } = await supabase
+          .from('forms')
+          .update({
+            restaurant_name: surveyTitle,
+            google_maps_url: googleMapsUrl,
+            minimum_positive_rating: redirectThreshold
+          })
+          .eq('id', formId)
+          .select()
+          .single()
+          
+        if (formError) throw formError
+        formData = data
+        
+        // Delete existing questions
+        const { error: deleteError } = await supabase
+          .from('questions')
+          .delete()
+          .eq('form_id', formId)
+          
+        if (deleteError) throw deleteError
+      } else {
+        // Insert new form
+        const { data, error: formError } = await supabase
+          .from('forms')
+          .insert({
+            restaurant_name: surveyTitle,
+            google_maps_url: googleMapsUrl,
+            minimum_positive_rating: redirectThreshold,
+            user_id: user.id
+          })
+          .select()
+          .single()
+          
+        if (formError) throw formError
+        formData = data
+        setFormId(data.id)
+      }
 
       // Insert questions
       const questionsToInsert = questions.map((question, index) => ({
@@ -156,12 +252,14 @@ const SurveyCreator = () => {
       if (questionsError) throw questionsError
 
       toast({
-        title: "Survey saved",
-        description: "Your survey has been saved successfully",
+        title: isEditing ? "Survey updated" : "Survey saved",
+        description: isEditing 
+          ? "Your survey has been updated successfully" 
+          : "Your survey has been saved successfully",
       })
 
-      // Navigate to dashboard or the survey page
-      navigate('/dashboard')
+      // Navigate to the share page
+      navigate(`/survey/${formData.id}/share`)
     } catch (error: any) {
       console.error("Error saving survey:", error)
       toast({
@@ -179,7 +277,18 @@ const SurveyCreator = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-2xl font-bold mb-1">Create Survey</h2>
+            <div className="flex items-center gap-3 mb-1">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-0 h-auto" 
+                onClick={() => navigate("/dashboard")}
+              >
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Back
+              </Button>
+              <h2 className="text-2xl font-bold">{isEditing ? "Edit Survey" : "Create Survey"}</h2>
+            </div>
             <p className="text-foreground/70">
               Design and customize your feedback survey
             </p>

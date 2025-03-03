@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,10 @@ import NotFound from "./pages/NotFound";
 import SurveyCreator from "./components/SurveyCreator";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
+import Dashboard from "./pages/Dashboard";
+import Templates from "./pages/Templates";
+import SurveyShare from "./pages/SurveyShare";
+import SurveyView from "./pages/SurveyView";
 import { useSession, getUserProfile } from "./lib/auth";
 
 const queryClient = new QueryClient();
@@ -102,13 +107,32 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <OnboardingCheck>
-                  <div className="flex items-center justify-center h-screen">
-                    <h1 className="text-2xl font-bold">Dashboard Coming Soon</h1>
-                  </div>
+                  <Dashboard />
                 </OnboardingCheck>
               </ProtectedRoute>
             }
           />
+          <Route 
+            path="/templates" 
+            element={
+              <ProtectedRoute>
+                <OnboardingCheck>
+                  <Templates />
+                </OnboardingCheck>
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/survey/:id/share" 
+            element={
+              <ProtectedRoute>
+                <OnboardingCheck>
+                  <SurveyShare />
+                </OnboardingCheck>
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/s/:id" element={<SurveyView />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

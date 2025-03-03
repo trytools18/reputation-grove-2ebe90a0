@@ -150,6 +150,68 @@ export type Database = {
           },
         ]
       }
+      survey_templates: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      template_questions: {
+        Row: {
+          created_at: string | null
+          id: string
+          options: string[] | null
+          order_num: number
+          template_id: string
+          text: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          options?: string[] | null
+          order_num: number
+          template_id: string
+          text: string
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          options?: string[] | null
+          order_num?: number
+          template_id?: string
+          text?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_questions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "survey_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
