@@ -132,6 +132,17 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+          {/* Add the missing route for viewing a specific survey */}
+          <Route 
+            path="/survey/:id" 
+            element={
+              <ProtectedRoute>
+                <OnboardingCheck>
+                  <SurveyCreator />
+                </OnboardingCheck>
+              </ProtectedRoute>
+            }
+          />
           <Route path="/s/:id" element={<SurveyView />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
