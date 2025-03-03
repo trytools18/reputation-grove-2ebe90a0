@@ -1,14 +1,32 @@
 
 import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
 import { useToast } from "@/components/ui/use-toast";
-import TemplateCard, { SurveyTemplate } from "@/components/templates/TemplateCard";
-import TemplateDetail from "@/components/templates/TemplateDetail";
-import TemplateFilter from "@/components/templates/TemplateFilter";
-import { getCategoryIcon, formatCategoryName } from "@/components/templates/TemplateUtils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Check, Copy, Clipboard, Coffee, Scissors, Hotel, Utensils, ListFilter } from "lucide-react";
+
+type TemplateQuestion = {
+  id: string;
+  template_id: string;
+  text: string;
+  type: string;
+  options: string[] | null;
+  order_num: number;
+};
+
+type SurveyTemplate = {
+  id: string;
+  name: string;
+  category: string;
+  description: string | null;
+  created_at: string | null;
+  questions?: TemplateQuestion[];
+};
 
 const Templates = () => {
   const [templates, setTemplates] = useState<SurveyTemplate[]>([]);
@@ -25,12 +43,14 @@ const Templates = () => {
     const fetchTemplates = async () => {
       setIsLoading(true);
       try {
+        // Fetch all templates
         const { data: templatesData, error: templatesError } = await supabase
           .from('survey_templates')
           .select('*');
           
         if (templatesError) throw templatesError;
         
+        // Fetch questions for each template
         if (templatesData) {
           const templatesWithQuestions = await Promise.all(
             templatesData.map(async (template) => {
@@ -51,6 +71,7 @@ const Templates = () => {
           
           setTemplates(templatesWithQuestions);
           
+          // Set selected category based on user's business category
           if (user) {
             const { data: profileData } = await supabase
               .from('profiles')
@@ -78,6 +99,25 @@ const Templates = () => {
     fetchTemplates();
   }, [user, toast]);
 
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'restaurant':
+        return <Utensils className="h-4 w-4" />;
+      case 'barbershop':
+        return <Scissors className="h-4 w-4" />;
+      case 'hotel':
+        return <Hotel className="h-4 w-4" />;
+      case 'coffee':
+        return <Coffee className="h-4 w-4" />;
+      default:
+        return <ListFilter className="h-4 w-4" />;
+    }
+  };
+
+  const formatCategoryName = (category: string) => {
+    return category.charAt(0).toUpperCase() + category.slice(1);
+  };
+
   const handleUseTemplate = (template: SurveyTemplate) => {
     setSelectedTemplate(template);
   };
@@ -88,6 +128,7 @@ const Templates = () => {
     setIsCreating(true);
     
     try {
+      // Get user profile to get business name
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('business_name, business_category')
@@ -96,11 +137,12 @@ const Templates = () => {
         
       if (profileError) throw profileError;
       
+      // Create the form
       const { data: formData, error: formError } = await supabase
         .from('forms')
         .insert({
           restaurant_name: profileData.business_name || "My Survey",
-          google_maps_url: "https://maps.google.com",
+          google_maps_url: "https://maps.google.com", // Default placeholder
           minimum_positive_rating: 4,
           user_id: user.id
         })
@@ -109,70 +151,21 @@ const Templates = () => {
         
       if (formError) throw formError;
       
-      // First, let's query the database to find out what valid types are accepted
-      const { data: validTypes, error: typesError } = await supabase
-        .from('questions')
-        .select('type')
-        .limit(10);
-      
-      if (typesError) {
-        console.error("Error fetching valid question types:", typesError);
-        throw typesError;
-      }
-      
-      console.log("Valid question types from DB:", validTypes);
-      
-      // Map template question types to valid database question types
-      const questionsToInsert = selectedTemplate.questions?.map((question, index) => {
-        // Make sure to convert the template question type to a valid database question type
-        // Based on database constraints, valid types are likely 'text', 'rating', or 'multiplechoice'
-        let dbType;
-        
-        // Convert template question type to a valid database type
-        switch(question.type.toLowerCase()) {
-          case 'multiplechoice':
-            dbType = 'multiplechoice';
-            break;
-          case 'rating':
-            dbType = 'rating';
-            break;
-          case 'text':
-            dbType = 'text';
-            break;
-          default:
-            // Default to text if unknown type
-            dbType = 'text';
-        }
-        
-        console.log(`Converting question type from ${question.type} to ${dbType}`);
-        
-        return {
+      // Create questions from template
+      if (selectedTemplate.questions && selectedTemplate.questions.length > 0) {
+        const questionsToInsert = selectedTemplate.questions.map((question, index) => ({
           form_id: formData.id,
           text: question.text,
-          type: dbType,
+          type: question.type,
           options: question.options,
           order: index
-        };
-      });
-      
-      console.log("Questions to insert:", questionsToInsert);
-      
-      // Before inserting, let's log the first question to see its structure
-      if (questionsToInsert && questionsToInsert.length > 0) {
-        console.log("First question details:", {
-          text: questionsToInsert[0].text,
-          type: questionsToInsert[0].type,
-          options: questionsToInsert[0].options
-        });
-      }
-      
-      const { error: questionsError } = await supabase
-        .from('questions')
-        .insert(questionsToInsert);
+        }));
         
-      if (questionsError) {
-        console.error("Error details:", questionsError);
-        throw questionsError;
+        const { error: questionsError } = await supabase
+          .from('questions')
+          .insert(questionsToInsert);
+          
+        if (questionsError) throw questionsError;
       }
       
       toast({
@@ -180,6 +173,7 @@ const Templates = () => {
         description: "Your survey has been created from the template",
       });
       
+      // Navigate to the survey creator to edit the newly created survey
       navigate(`/create-survey?id=${formData.id}`);
       
     } catch (error: any) {
@@ -194,10 +188,12 @@ const Templates = () => {
     }
   };
 
+  // Filter templates by selected category
   const filteredTemplates = selectedCategory
     ? templates.filter(template => template.category === selectedCategory)
     : templates;
 
+  // Get unique categories from templates
   const categories = [...new Set(templates.map(template => template.category))];
 
   if (isLoading) {
@@ -229,36 +225,190 @@ const Templates = () => {
       </div>
 
       {selectedTemplate ? (
-        <TemplateDetail 
-          template={selectedTemplate}
-          isCreating={isCreating}
-          onBack={() => setSelectedTemplate(null)}
-          onUse={createSurveyFromTemplate}
-          getCategoryIcon={getCategoryIcon}
-          formatCategoryName={formatCategoryName}
-        />
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>{selectedTemplate.name}</CardTitle>
+                <CardDescription>{selectedTemplate.description}</CardDescription>
+              </div>
+              <Badge variant="outline" className="flex items-center gap-1">
+                {getCategoryIcon(selectedTemplate.category)}
+                {formatCategoryName(selectedTemplate.category)}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <h3 className="text-lg font-medium mb-4">Template Questions</h3>
+            <div className="space-y-4">
+              {selectedTemplate.questions?.map((question, index) => (
+                <div key={question.id} className="border rounded-md p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="outline">{index + 1}</Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {question.type === 'rating' ? 'Rating Question' : 
+                       question.type === 'multiplechoice' ? 'Multiple Choice' : 'Text Response'}
+                    </span>
+                  </div>
+                  <h4 className="font-medium">{question.text}</h4>
+                  
+                  {question.type === 'multiplechoice' && question.options && (
+                    <div className="mt-2 pl-4">
+                      <ul className="list-disc text-sm space-y-1 text-muted-foreground">
+                        {question.options.map((option, optIndex) => (
+                          <li key={optIndex}>{option}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {question.type === 'rating' && (
+                    <div className="mt-2 flex space-x-1">
+                      {[1, 2, 3, 4, 5].map((num) => (
+                        <div key={num} className="w-8 h-8 flex items-center justify-center border rounded-full">
+                          {num}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button 
+              variant="outline"
+              onClick={() => setSelectedTemplate(null)}
+            >
+              Back to Templates
+            </Button>
+            <Button 
+              onClick={createSurveyFromTemplate}
+              disabled={isCreating}
+            >
+              {isCreating ? (
+                <>
+                  <div className="h-4 w-4 border-t-2 border-b-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Use Template
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
       ) : (
-        <TemplateFilter
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-          getCategoryIcon={getCategoryIcon}
-          formatCategoryName={formatCategoryName}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTemplates.map(template => (
-              <TemplateCard 
-                key={template.id} 
-                template={template} 
-                onUse={handleUseTemplate}
-                getCategoryIcon={getCategoryIcon}
-                formatCategoryName={formatCategoryName}
-              />
+        <>
+          <Tabs defaultValue={selectedCategory || categories[0]}>
+            <TabsList className="mb-6">
+              <TabsTrigger value="all" onClick={() => setSelectedCategory(null)}>
+                All Templates
+              </TabsTrigger>
+              {categories.map(category => (
+                <TabsTrigger 
+                  key={category} 
+                  value={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className="flex items-center gap-1"
+                >
+                  {getCategoryIcon(category)}
+                  {formatCategoryName(category)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            
+            <TabsContent value="all">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {templates.map(template => (
+                  <TemplateCard 
+                    key={template.id} 
+                    template={template} 
+                    onUse={handleUseTemplate}
+                    getCategoryIcon={getCategoryIcon}
+                    formatCategoryName={formatCategoryName}
+                  />
+                ))}
+              </div>
+            </TabsContent>
+            
+            {categories.map(category => (
+              <TabsContent key={category} value={category}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {templates
+                    .filter(template => template.category === category)
+                    .map(template => (
+                      <TemplateCard 
+                        key={template.id} 
+                        template={template} 
+                        onUse={handleUseTemplate}
+                        getCategoryIcon={getCategoryIcon}
+                        formatCategoryName={formatCategoryName}
+                      />
+                    ))}
+                </div>
+              </TabsContent>
             ))}
-          </div>
-        </TemplateFilter>
+          </Tabs>
+        </>
       )}
     </div>
+  );
+};
+
+// Template Card Component
+const TemplateCard = ({ 
+  template, 
+  onUse,
+  getCategoryIcon,
+  formatCategoryName 
+}: { 
+  template: SurveyTemplate; 
+  onUse: (template: SurveyTemplate) => void;
+  getCategoryIcon: (category: string) => JSX.Element;
+  formatCategoryName: (category: string) => string;
+}) => {
+  return (
+    <Card className="h-full flex flex-col">
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle>{template.name}</CardTitle>
+            <CardDescription>{template.description}</CardDescription>
+          </div>
+          <Badge variant="outline" className="flex items-center gap-1">
+            {getCategoryIcon(template.category)}
+            {formatCategoryName(template.category)}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="flex-grow">
+        <div className="text-sm text-muted-foreground">
+          <span className="font-medium">{template.questions?.length || 0} questions</span>
+          <ul className="mt-2 space-y-1">
+            {template.questions?.slice(0, 3).map((question, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <Check className="h-4 w-4 mt-0.5 text-green-500" />
+                <span className="line-clamp-1">{question.text}</span>
+              </li>
+            ))}
+            {template.questions && template.questions.length > 3 && (
+              <li className="text-xs text-muted-foreground mt-1">
+                + {template.questions.length - 3} more questions
+              </li>
+            )}
+          </ul>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button className="w-full" onClick={() => onUse(template)}>
+          <Clipboard className="mr-2 h-4 w-4" />
+          Use Template
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 
