@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signIn, signUp, useSession } from "@/lib/auth";
+import { signIn, signUp, useSession, getUserProfile } from "@/lib/auth";
 import { toast } from "sonner";
 
 const Auth = () => {
@@ -31,9 +31,23 @@ const Auth = () => {
 
   useEffect(() => {
     // Redirect if logged in
-    if (user && !isLoading) {
-      navigate("/");
-    }
+    const checkAuthAndRedirect = async () => {
+      if (user && !isLoading) {
+        try {
+          const profile = await getUserProfile();
+          if (profile && !profile.onboarding_completed) {
+            navigate("/onboarding");
+          } else {
+            navigate("/");
+          }
+        } catch (error) {
+          console.error("Error checking profile:", error);
+          navigate("/");
+        }
+      }
+    };
+    
+    checkAuthAndRedirect();
   }, [user, isLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -43,7 +57,7 @@ const Auth = () => {
     try {
       await signIn({ email, password });
       toast.success("Logged in successfully");
-      navigate("/");
+      // Redirect will happen in the useEffect based on onboarding status
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "Failed to log in");

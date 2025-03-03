@@ -20,6 +20,17 @@ export type SignInData = {
   password: string;
 };
 
+export type UserProfile = {
+  id: string;
+  business_name: string;
+  email: string | null;
+  business_category?: string;
+  city?: string;
+  onboarding_completed?: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
 export function useSession(): AuthSession {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -106,7 +117,7 @@ export async function signOut() {
   return true;
 }
 
-export async function getUserProfile() {
+export async function getUserProfile(): Promise<UserProfile | null> {
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
@@ -124,7 +135,7 @@ export async function getUserProfile() {
     throw error;
   }
 
-  return data;
+  return data as UserProfile;
 }
 
 export async function updateUserProfile(updates: any) {
