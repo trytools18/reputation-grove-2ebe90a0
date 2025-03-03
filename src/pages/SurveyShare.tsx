@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { useSession } from "@/lib/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { QrCode, Copy, Link, Share2, ArrowLeft } from "lucide-react";
+import { QrCode, Copy, Link, Share2, ArrowLeft, ExternalLink } from "lucide-react";
 
 const SurveyShare = () => {
   const { id } = useParams<{ id: string }>();
@@ -79,8 +78,10 @@ const SurveyShare = () => {
 
   const generateQRCode = () => {
     setQrVisible(true);
-    // In a real implementation, you'd generate a QR code with a library
-    // For now, we'll just show a placeholder
+  };
+
+  const openSurveyForm = () => {
+    window.open(surveyUrl, '_blank');
   };
 
   if (isLoading) {
@@ -133,6 +134,15 @@ const SurveyShare = () => {
             {copySuccess && (
               <p className="text-green-500 text-sm mt-2">{copySuccess}</p>
             )}
+            
+            <div className="mt-4">
+              <Button 
+                onClick={openSurveyForm} 
+                className="w-full flex items-center justify-center gap-2"
+              >
+                Open Survey Form <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="border-t pt-4">
@@ -159,7 +169,6 @@ const SurveyShare = () => {
               <div className="bg-gray-100 rounded-lg p-8 flex items-center justify-center">
                 <div className="w-48 h-48 border-2 border-dashed border-gray-400 flex items-center justify-center">
                   <p className="text-center text-gray-500">QR Code Placeholder</p>
-                  {/* In a real implementation, you'd render an actual QR code here */}
                 </div>
               </div>
               <div className="mt-4 text-center">
