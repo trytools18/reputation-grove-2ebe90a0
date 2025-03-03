@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase, QUESTION_TYPES, DB_TO_FRONTEND_TYPE } from "@/integrations/supabase/client";
+import { supabase, QUESTION_TYPES } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
 const SurveyView = () => {
@@ -62,15 +62,12 @@ const SurveyView = () => {
           throw questionsError;
         }
         
-        if (!questionsData || questionsData.length === 0) {
-          console.log("No questions found for survey");
-        } else {
-          console.log("Found questions:", questionsData.length);
-        }
+        console.log("Found questions:", questionsData?.length || 0);
         
         setSurvey(formData);
         setQuestions(questionsData || []);
         
+        // Initialize answers state with defaults based on question types
         const initialAnswers: Record<string, any> = {};
         questionsData?.forEach(q => {
           if (q.type === QUESTION_TYPES.RATING) {
@@ -145,6 +142,7 @@ const SurveyView = () => {
         throw new Error("Please answer at least one question");
       }
       
+      // Calculate average rating from rating questions
       const ratingQuestions = questions.filter(q => q.type === QUESTION_TYPES.RATING);
       const ratingValues = ratingQuestions
         .map(q => Number(answers[q.id]) || 0)
@@ -156,6 +154,7 @@ const SurveyView = () => {
       
       console.log("Average rating:", averageRating);
       
+      // Submit to the submissions table
       const { error } = await supabase
         .from('submissions')
         .insert({
