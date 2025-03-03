@@ -30,12 +30,12 @@ const SurveyView = () => {
       try {
         console.log("Fetching survey with ID:", id);
         
-        // Get the form data without user_id restriction for public access
+        // Use maybeSingle() instead of single() to avoid the error when no rows are found
         const { data: formData, error: formError } = await supabase
           .from('forms')
           .select('*')
           .eq('id', id)
-          .single();
+          .maybeSingle();
           
         if (formError) {
           console.error("Error fetching form:", formError);
