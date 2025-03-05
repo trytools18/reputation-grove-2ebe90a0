@@ -16,10 +16,31 @@ const SurveyView = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
-  const [showGoogleMapsRedirect, setShowGoogleMapsRedirect] = useState(false);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState("");
   
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Effect to handle auto-redirect
+  useEffect(() => {
+    if (shouldRedirect && redirectUrl) {
+      // Delayed redirect to ensure toast is seen
+      const timer = setTimeout(() => {
+        window.open(redirectUrl, '_blank');
+      }, 1500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [shouldRedirect, redirectUrl]);
+
+  // Function to ensure we have an absolute URL
+  function ensureAbsoluteUrl(url: string): string {
+    if (url && !url.match(/^https?:\/\//i)) {
+      return `https://${url}`;
+    }
+    return url;
+  }
 
   useEffect(() => {
     const fetchSurveyData = async () => {
@@ -170,12 +191,15 @@ const SurveyView = () => {
       
       setSubmissionSuccess(true);
       
+      // Check if the rating meets the threshold for Google Maps redirection
       if (averageRating >= survey.minimum_positive_rating && survey.google_maps_url) {
-        setShowGoogleMapsRedirect(true);
+        const absoluteUrl = ensureAbsoluteUrl(survey.google_maps_url);
+        setRedirectUrl(absoluteUrl);
+        setShouldRedirect(true);
         
         toast({
-          title: "We'd appreciate a review on Google Maps",
-          description: "Please click the link to leave a review!"
+          title: "Redirecting to Google Maps",
+          description: "You'll be redirected to Google Maps to leave a review in a moment!"
         });
       }
       
@@ -225,35 +249,15 @@ const SurveyView = () => {
             <CardDescription>Your feedback has been submitted successfully.</CardDescription>
           </CardHeader>
           <CardContent>
-            {showGoogleMapsRedirect && survey.google_maps_url && (
-              <>
-                <p className="text-center mb-4">
-                  We'd appreciate if you could leave a review on Google Maps as well.
-                </p>
-                <div className="flex justify-center">
-                  <a 
-                    href={ensureAbsoluteUrl(survey.google_maps_url)}
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline flex items-center"
-                  >
-                    Open Google Maps
-                  </a>
-                </div>
-              </>
+            {shouldRedirect && (
+              <p className="text-center mb-4">
+                You will be redirected to Google Maps to leave a review momentarily...
+              </p>
             )}
           </CardContent>
         </Card>
       </div>
     );
-  }
-
-  // Function to ensure we have an absolute URL
-  function ensureAbsoluteUrl(url: string): string {
-    if (url && !url.match(/^https?:\/\//i)) {
-      return `https://${url}`;
-    }
-    return url;
   }
 
   return (
