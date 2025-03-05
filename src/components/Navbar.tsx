@@ -69,7 +69,6 @@ const Navbar = () => {
           <span className="font-semibold text-xl">{t('app.name')}</span>
         </a>
 
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           <a href="#features" className="text-foreground/80 hover:text-foreground transition-colors">
             {t('nav.features')}
@@ -80,11 +79,6 @@ const Navbar = () => {
           <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
             {t('nav.about')}
           </a>
-          {user && (
-            <Link to="/dashboard" className="text-foreground/80 hover:text-foreground transition-colors">
-              {t('nav.dashboard')}
-            </Link>
-          )}
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
@@ -115,7 +109,6 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center gap-2">
           <LanguageSwitcher variant="ghost" minimal size="sm" />
           <Button 
@@ -128,7 +121,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white absolute top-full left-0 right-0 border-b border-gray-200 animate-fade-in">
           <div className="container mx-auto px-6 py-4 flex flex-col space-y-4">
@@ -153,15 +145,6 @@ const Navbar = () => {
             >
               {t('nav.about')}
             </a>
-            {user && (
-              <Link 
-                to="/dashboard" 
-                className="py-2 text-foreground/80 hover:text-foreground transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('nav.dashboard')}
-              </Link>
-            )}
             <div className="pt-4 flex flex-col space-y-3">
               {isLoading ? (
                 <div className="h-10 w-full bg-gray-200 animate-pulse rounded-full"></div>
