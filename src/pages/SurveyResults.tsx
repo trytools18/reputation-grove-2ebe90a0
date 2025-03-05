@@ -7,7 +7,7 @@ import { supabase, QUESTION_TYPES, exportSurveyData } from "@/integrations/supab
 import { useToast } from "@/components/ui/use-toast";
 import { useSession } from "@/lib/auth";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Loader2, ArrowLeft, ClipboardCheck, Download, ListIcon, Badge } from "lucide-react";
+import { Loader2, ArrowLeft, ClipboardCheck, Download, ListIcon } from "lucide-react";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
@@ -85,7 +85,7 @@ const SurveyResults = () => {
       setError(error.message || "Could not load the survey data");
       toast({
         title: "Error loading survey results",
-        description: error.message || "Could not load the survey results",
+        description: error.message || "Could not load the survey data",
         variant: "destructive"
       });
     } finally {
@@ -344,12 +344,12 @@ const SurveyResults = () => {
           ) : (
             <div className="space-y-8">
               {ratingQuestions.length > 0 && (
-                <Card>
-                  <CardHeader>
+                <Card className="shadow-sm border-slate-200">
+                  <CardHeader className="bg-slate-50 rounded-t-lg border-b">
                     <CardTitle>Rating Questions</CardTitle>
                     <CardDescription>Results from rating-based questions</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-6">
                     <div className="space-y-10">
                       {ratingQuestions.map((question, index) => {
                         const stats = analytics.questionStats[question.id];
@@ -357,7 +357,7 @@ const SurveyResults = () => {
                         
                         return (
                           <div key={question.id} className="border-b pb-8 last:border-0 last:pb-0">
-                            <h3 className="text-xl font-semibold mb-2">{question.text}</h3>
+                            <h3 className="text-xl font-semibold mb-4">{question.text}</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div className="h-64">
                                 <ResponsiveContainer width="100%" height="100%">
@@ -382,21 +382,24 @@ const SurveyResults = () => {
                                   </PieChart>
                                 </ResponsiveContainer>
                               </div>
-                              <div className="flex flex-col justify-center space-y-2">
+                              <div className="flex flex-col justify-center space-y-4">
                                 <div className="flex items-center">
-                                  <Badge variant="success" className="mr-2">Average</Badge>
+                                  <span className="bg-emerald-100 text-emerald-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">Average</span>
                                   <span className="text-2xl font-bold">{stats.average.toFixed(1)} ★</span>
                                 </div>
                                 <div className="flex items-center">
-                                  <Badge variant="secondary" className="mr-2">Responses</Badge>
+                                  <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">Responses</span>
                                   <span>{stats.totalAnswered} answers</span>
                                 </div>
                                 <div className="mt-4">
                                   <h4 className="text-sm font-medium mb-2">Rating Distribution</h4>
-                                  <ul className="list-disc list-inside space-y-1">
-                                    {stats.distribution.map((item: any) => (
-                                      <li key={item.name} className="text-sm">
-                                        {item.name}: {item.percentage}% ({item.value} responses)
+                                  <ul className="space-y-1">
+                                    {stats.distribution.map((item: any, idx: number) => (
+                                      <li key={item.name} className="flex items-center space-x-2">
+                                        <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></span>
+                                        <span className="text-sm">
+                                          {item.name}: {item.percentage}% ({item.value} responses)
+                                        </span>
                                       </li>
                                     ))}
                                   </ul>
@@ -412,12 +415,12 @@ const SurveyResults = () => {
               )}
               
               {multipleChoiceQuestions.length > 0 && (
-                <Card>
-                  <CardHeader>
+                <Card className="shadow-sm border-slate-200">
+                  <CardHeader className="bg-slate-50 rounded-t-lg border-b">
                     <CardTitle>Multiple-Choice Questions</CardTitle>
                     <CardDescription>Results from selection-based questions</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-6">
                     <div className="space-y-10">
                       {multipleChoiceQuestions.map((question, index) => {
                         const stats = analytics.questionStats[question.id];
@@ -425,39 +428,53 @@ const SurveyResults = () => {
                         
                         return (
                           <div key={question.id} className="border-b pb-8 last:border-0 last:pb-0">
-                            <h3 className="text-xl font-semibold mb-2">{question.text}</h3>
+                            <h3 className="text-xl font-semibold mb-4">{question.text}</h3>
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                               <div className="h-64">
                                 <ResponsiveContainer width="100%" height="100%">
                                   <BarChart
                                     layout="vertical"
                                     data={stats.distribution}
-                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                    margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
                                   >
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis type="number" />
                                     <YAxis 
                                       type="category" 
                                       dataKey="name" 
-                                      width={150}
+                                      width={120}
                                       tick={{ fontSize: 12 }}
                                     />
                                     <Tooltip formatter={(value) => [`${value} responses`, 'Count']} />
-                                    <Bar dataKey="value" name="Responses" fill="#82ca9d" />
+                                    <Bar dataKey="value" name="Responses" fill="#82ca9d" radius={[0, 4, 4, 0]} />
                                   </BarChart>
                                 </ResponsiveContainer>
                               </div>
-                              <div className="flex flex-col justify-center space-y-2">
+                              <div className="flex flex-col justify-center space-y-4">
                                 <div className="flex items-center">
-                                  <Badge variant="secondary" className="mr-2">Respondents</Badge>
+                                  <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">Respondents</span>
                                   <span>{stats.totalAnswered} people answered</span>
                                 </div>
                                 <div className="mt-4">
                                   <h4 className="text-sm font-medium mb-2">Response Distribution</h4>
-                                  <ul className="list-disc list-inside space-y-1">
-                                    {stats.distribution.map((item: any) => (
-                                      <li key={item.name} className="text-sm">
-                                        {item.name}: {item.percentage}% ({item.value} responses)
+                                  <ul className="space-y-2">
+                                    {stats.distribution.map((item: any, idx: number) => (
+                                      <li key={item.name} className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                        <div className="text-sm flex-1">
+                                          {item.name} 
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                            <div 
+                                              className="h-full bg-green-500 rounded-full" 
+                                              style={{ width: `${item.percentage}%` }}
+                                            ></div>
+                                          </div>
+                                          <span className="text-xs font-medium">
+                                            {item.percentage}% ({item.value})
+                                          </span>
+                                        </div>
                                       </li>
                                     ))}
                                   </ul>
@@ -473,12 +490,12 @@ const SurveyResults = () => {
               )}
               
               {textQuestions.length > 0 && (
-                <Card>
-                  <CardHeader>
+                <Card className="shadow-sm border-slate-200">
+                  <CardHeader className="bg-slate-50 rounded-t-lg border-b">
                     <CardTitle>Text Questions</CardTitle>
                     <CardDescription>Free-form text responses</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-6">
                     <div className="space-y-8">
                       {textQuestions.map((question) => {
                         const stats = analytics.questionStats[question.id];
@@ -488,14 +505,14 @@ const SurveyResults = () => {
                           <div key={question.id} className="border-b pb-6 last:border-0 last:pb-0">
                             <h3 className="text-xl font-semibold mb-2">{question.text}</h3>
                             <div className="flex items-center mb-4">
-                              <Badge variant="secondary" className="mr-2">Responses</Badge>
+                              <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">Responses</span>
                               <span>{stats.totalAnswered} text answers</span>
                             </div>
                             
                             {stats.responses.length > 0 ? (
                               <div className="space-y-3 max-h-64 overflow-y-auto p-1">
                                 {stats.responses.map((resp: any, i: number) => (
-                                  <div key={i} className="p-3 bg-muted rounded-md">
+                                  <div key={i} className="p-3 bg-slate-50 rounded-md border border-slate-200">
                                     <p className="mb-1">{resp.response}</p>
                                     <p className="text-xs text-muted-foreground">
                                       Submitted: {formatDate(resp.timestamp)}
@@ -518,12 +535,12 @@ const SurveyResults = () => {
         </TabsContent>
 
         <TabsContent value="responses" className="space-y-6">
-          <Card>
-            <CardHeader>
+          <Card className="shadow-sm border-slate-200">
+            <CardHeader className="bg-slate-50 rounded-t-lg border-b">
               <CardTitle>Individual Responses</CardTitle>
               <CardDescription>View all collected responses</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {submissions.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">No responses received yet</p>
@@ -531,8 +548,8 @@ const SurveyResults = () => {
               ) : (
                 <div className="space-y-6">
                   {submissions.map((submission, index) => (
-                    <Card key={submission.id} className="shadow-sm">
-                      <CardHeader className="pb-2">
+                    <Card key={submission.id} className="shadow-sm border-slate-100">
+                      <CardHeader className="pb-2 bg-slate-50 rounded-t-lg">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-base">Response #{submissions.length - index}</CardTitle>
                           <div className="text-sm text-muted-foreground">
@@ -544,7 +561,7 @@ const SurveyResults = () => {
                         <div className="space-y-4">
                           {questions.map((question) => (
                             <div key={question.id} className="border-b pb-3 last:border-0 last:pb-0">
-                              <h4 className="text-sm font-medium">{question.text}</h4>
+                              <h4 className="text-sm font-medium text-slate-700">{question.text}</h4>
                               
                               <div className="mt-1">
                                 {question.type === QUESTION_TYPES.RATING && (
@@ -567,12 +584,18 @@ const SurveyResults = () => {
                                      (!Array.isArray(submission.answers[question.id]) && submission.answers[question.id] === '') ? (
                                       <span className="text-muted-foreground text-sm">Not answered</span>
                                     ) : (
-                                      <ul className="list-disc list-inside text-sm">
+                                      <ul className="space-y-1 mt-2">
                                         {Array.isArray(submission.answers[question.id]) ? 
                                           submission.answers[question.id].map((answer: string, i: number) => (
-                                            <li key={i}>{answer}</li>
+                                            <li key={i} className="flex items-center gap-2">
+                                              <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                              <span>{answer}</span>
+                                            </li>
                                           )) : 
-                                          <li>{submission.answers[question.id]}</li>
+                                          <li className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                            <span>{submission.answers[question.id]}</span>
+                                          </li>
                                         }
                                       </ul>
                                     )}
@@ -584,7 +607,7 @@ const SurveyResults = () => {
                                     {!submission.answers[question.id] || submission.answers[question.id].trim() === "" ? (
                                       <span className="text-muted-foreground text-sm">Not answered</span>
                                     ) : (
-                                      <p className="text-sm bg-muted p-2 rounded">
+                                      <p className="text-sm bg-slate-50 p-3 rounded-md border border-slate-200 mt-2">
                                         {submission.answers[question.id]}
                                       </p>
                                     )}
