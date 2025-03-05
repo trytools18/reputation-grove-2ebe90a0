@@ -4,11 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase, QUESTION_TYPES } from "@/integrations/supabase/client";
+import { supabase, QUESTION_TYPES, exportSurveyData } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useSession } from "@/lib/auth";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Loader2, ArrowLeft, ClipboardCheck, Download } from "lucide-react";
+import { Loader2, ArrowLeft, ClipboardCheck, Download, PieChart as PieChartIcon, BarChartIcon, ListIcon } from "lucide-react";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
@@ -147,12 +147,20 @@ const SurveyResults = () => {
         
         submissions.forEach(submission => {
           const selections = submission.answers[question.id] || [];
-          selections.forEach((selection: string) => {
-            if (optionCounts[selection] !== undefined) {
-              optionCounts[selection]++;
+          if (Array.isArray(selections)) {
+            selections.forEach((selection: string) => {
+              if (optionCounts[selection] !== undefined) {
+                optionCounts[selection]++;
+                totalSelections++;
+              }
+            });
+          } else if (typeof selections === 'string') {
+            // Handle case where selection is stored as a string
+            if (optionCounts[selections] !== undefined) {
+              optionCounts[selections]++;
               totalSelections++;
             }
-          });
+          }
         });
         
         const optionData = Object.entries(optionCounts).map(([name, value]) => ({
@@ -163,7 +171,10 @@ const SurveyResults = () => {
         
         questionStats[question.id] = {
           totalAnswered: submissions.filter(s => 
-            s.answers[question.id] && s.answers[question.id].length > 0
+            s.answers[question.id] && 
+            (Array.isArray(s.answers[question.id]) ? 
+              s.answers[question.id].length > 0 : 
+              s.answers[question.id] !== '')
           ).length,
           totalSelections,
           distribution: optionData
@@ -203,56 +214,16 @@ const SurveyResults = () => {
     }).format(date);
   };
 
-  const exportSurveyData = () => {
-    try {
-      // Prepare the data to export
-      const exportData = {
-        surveyInfo: {
-          name: survey?.restaurant_name || "Survey",
-          createdAt: survey?.created_at || new Date().toISOString(),
-          totalResponses: submissions.length
-        },
-        questions: questions.map(q => ({
-          id: q.id,
-          text: q.text,
-          type: q.type,
-          options: q.options
-        })),
-        responses: submissions.map(s => ({
-          id: s.id,
-          submittedAt: s.created_at,
-          answers: s.answers,
-          averageRating: s.average_rating
-        })),
-        analytics: analytics
-      };
-      
-      // Convert to JSON string
-      const jsonString = JSON.stringify(exportData, null, 2);
-      
-      // Create a blob and download link
-      const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      
-      link.href = url;
-      link.download = `${survey?.restaurant_name || 'survey'}-results.json`;
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      URL.revokeObjectURL(url);
-      
+  const handleExportData = () => {
+    if (exportSurveyData(survey, questions, submissions, analytics)) {
       toast({
         title: "Export successful",
         description: "Survey data has been downloaded as JSON",
       });
-    } catch (error: any) {
-      console.error("Error exporting data:", error);
+    } else {
       toast({
         title: "Export failed",
-        description: error.message || "Could not export survey data",
+        description: "Could not export survey data",
         variant: "destructive"
       });
     }
@@ -310,7 +281,7 @@ const SurveyResults = () => {
           </Button>
           <Button 
             variant="outline" 
-            onClick={exportSurveyData}
+            onClick={handleExportData}
           >
             <Download className="h-4 w-4 mr-2" />
             Export Data
@@ -320,9 +291,18 @@ const SurveyResults = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full max-w-md grid-cols-3">
-          <TabsTrigger value="summary">Summary</TabsTrigger>
-          <TabsTrigger value="questions">Questions</TabsTrigger>
-          <TabsTrigger value="responses">Responses</TabsTrigger>
+          <TabsTrigger value="summary" className="flex items-center">
+            <PieChartIcon className="h-4 w-4 mr-2" />
+            Summary
+          </TabsTrigger>
+          <TabsTrigger value="questions" className="flex items-center">
+            <BarChartIcon className="h-4 w-4 mr-2" />
+            Questions
+          </TabsTrigger>
+          <TabsTrigger value="responses" className="flex items-center">
+            <ListIcon className="h-4 w-4 mr-2" />
+            Responses
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="summary" className="space-y-6">
@@ -375,78 +355,115 @@ const SurveyResults = () => {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Rating questions summary */}
-              {questions
-                .filter(q => q.type === QUESTION_TYPES.RATING)
-                .map((question, index) => {
-                  const stats = analytics.questionStats[question.id];
-                  if (!stats) return null;
-                  
-                  return (
-                    <Card key={question.id}>
-                      <CardHeader>
-                        <CardTitle className="text-base">{question.text}</CardTitle>
-                        <CardDescription>Average rating: {stats.average.toFixed(1)}/5</CardDescription>
-                      </CardHeader>
-                      <CardContent className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={stats.distribution}
-                            margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="value" name="Responses" fill="#8884d8" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  );
-                })
-              }
+              {/* Aggregated Ratings Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Rating Distribution</CardTitle>
+                  <CardDescription>How customers are rating this survey</CardDescription>
+                </CardHeader>
+                <CardContent className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[1, 2, 3, 4, 5].map(rating => {
+                          const count = submissions.filter(s => Math.round(s.average_rating) === rating).length;
+                          return {
+                            name: `${rating} Star${rating > 1 ? 's' : ''}`,
+                            value: count,
+                            percentage: submissions.length > 0 ? Math.round((count / submissions.length) * 100) : 0
+                          };
+                        })}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={true}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percentage }) => 
+                          percentage > 0 ? `${name}: ${percentage}%` : ''
+                        }
+                      >
+                        {[0, 1, 2, 3, 4].map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [`${value} responses`, 'Count']} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
               
-              {/* Multiple choice questions summary */}
-              {questions
-                .filter(q => q.type === QUESTION_TYPES.MULTIPLE_CHOICE)
-                .map((question, index) => {
-                  const stats = analytics.questionStats[question.id];
-                  if (!stats) return null;
-                  
-                  return (
-                    <Card key={question.id}>
-                      <CardHeader>
-                        <CardTitle className="text-base">{question.text}</CardTitle>
-                        <CardDescription>{stats.totalAnswered} responses</CardDescription>
-                      </CardHeader>
-                      <CardContent className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={stats.distribution}
-                              cx="50%"
-                              cy="50%"
-                              labelLine={false}
-                              outerRadius={80}
-                              fill="#8884d8"
-                              dataKey="value"
-                              label={({ name, percent }) => 
-                                percent > 0.05 ? `${name}: ${(percent * 100).toFixed(0)}%` : ''
-                              }
-                            >
-                              {stats.distribution.map((_: any, index: number) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              {/* Multiple Choice Questions Summary */}
+              {questions.filter(q => q.type === QUESTION_TYPES.MULTIPLE_CHOICE).length > 0 ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Response Distribution</CardTitle>
+                    <CardDescription>Most frequent responses to multiple choice questions</CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={questions
+                          .filter(q => q.type === QUESTION_TYPES.MULTIPLE_CHOICE)
+                          .slice(0, 1)
+                          .flatMap(question => {
+                            const stats = analytics.questionStats[question.id];
+                            if (!stats) return [];
+                            return stats.distribution.map((item: any) => ({
+                              ...item,
+                              question: question.text
+                            }));
+                          })}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="value" name="Responses" fill="#82ca9d" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Submissions</CardTitle>
+                    <CardDescription>Last responses received</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4 max-h-64 overflow-y-auto">
+                      {submissions.slice(0, 5).map((submission, index) => (
+                        <div key={index} className="border p-3 rounded-md">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <svg
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < Math.round(submission.average_rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300 fill-gray-300"
+                                  }`}
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
                               ))}
-                            </Pie>
-                            <Tooltip formatter={(value) => [`${value} responses`, 'Count']} />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  );
-                })
-              }
+                              <span className="ml-2">
+                                {submission.average_rating.toFixed(1)}
+                              </span>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {formatDate(submission.created_at)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
         </TabsContent>
@@ -511,14 +528,15 @@ const SurveyResults = () => {
                               outerRadius={80}
                               fill="#8884d8"
                               dataKey="value"
-                              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                              label={({ name, percent }) => 
+                                percent > 0.05 ? `${name}: ${(percent * 100).toFixed(0)}%` : ''
+                              }
                             >
                               {analytics.questionStats[question.id].distribution.map((_: any, index: number) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                               ))}
                             </Pie>
                             <Tooltip formatter={(value) => [`${value} responses`, 'Count']} />
-                            <Legend />
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
@@ -596,13 +614,18 @@ const SurveyResults = () => {
                                 
                                 {question.type === QUESTION_TYPES.MULTIPLE_CHOICE && (
                                   <div>
-                                    {!submission.answers[question.id] || submission.answers[question.id].length === 0 ? (
+                                    {!submission.answers[question.id] || 
+                                     (Array.isArray(submission.answers[question.id]) && submission.answers[question.id].length === 0) ||
+                                     (!Array.isArray(submission.answers[question.id]) && submission.answers[question.id] === '') ? (
                                       <span className="text-muted-foreground text-sm">Not answered</span>
                                     ) : (
                                       <ul className="list-disc list-inside text-sm">
-                                        {submission.answers[question.id].map((answer: string, i: number) => (
-                                          <li key={i}>{answer}</li>
-                                        ))}
+                                        {Array.isArray(submission.answers[question.id]) ? 
+                                          submission.answers[question.id].map((answer: string, i: number) => (
+                                            <li key={i}>{answer}</li>
+                                          )) : 
+                                          <li>{submission.answers[question.id]}</li>
+                                        }
                                       </ul>
                                     )}
                                   </div>

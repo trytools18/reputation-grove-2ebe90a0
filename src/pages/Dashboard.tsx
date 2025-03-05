@@ -1,15 +1,13 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Pie, PieChart, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
-import { PlusCircle, BarChart as BarChartIcon, PieChart as PieChartIcon, ArrowUpRight, Trash2 } from "lucide-react";
+import { PlusCircle, BarChart as BarChartIcon, PieChart as PieChartIcon, ArrowUpRight, Trash2, BarChart2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
@@ -31,7 +29,6 @@ const Dashboard = () => {
       
       setIsLoading(true);
       try {
-        // Fetch surveys
         const { data: surveysData, error: surveysError } = await supabase
           .from('forms')
           .select('*')
@@ -39,7 +36,6 @@ const Dashboard = () => {
           
         if (surveysError) throw surveysError;
         
-        // Fetch submissions for all user surveys
         if (surveysData && surveysData.length > 0) {
           const surveyIds = surveysData.map(survey => survey.id);
           
@@ -79,7 +75,6 @@ const Dashboard = () => {
     
     setIsDeleting(true);
     try {
-      // Delete all questions related to the survey
       const { error: questionsError } = await supabase
         .from('questions')
         .delete()
@@ -87,7 +82,6 @@ const Dashboard = () => {
         
       if (questionsError) throw questionsError;
       
-      // Delete all submissions related to the survey
       const { error: submissionsError } = await supabase
         .from('submissions')
         .delete()
@@ -95,7 +89,6 @@ const Dashboard = () => {
         
       if (submissionsError) throw submissionsError;
       
-      // Delete the survey itself
       const { error: surveyError } = await supabase
         .from('forms')
         .delete()
@@ -103,7 +96,6 @@ const Dashboard = () => {
         
       if (surveyError) throw surveyError;
       
-      // Update the local state to remove the deleted survey
       setSurveys(surveys.filter(survey => survey.id !== surveyToDelete));
       setSubmissions(submissions.filter(sub => sub.form_id !== surveyToDelete));
       
@@ -125,7 +117,6 @@ const Dashboard = () => {
     }
   };
 
-  // Prepare chart data
   const ratingDistribution = [
     { name: '1 Star', value: submissions.filter(s => Math.round(s.average_rating) === 1).length },
     { name: '2 Stars', value: submissions.filter(s => Math.round(s.average_rating) === 2).length },
@@ -288,6 +279,16 @@ const Dashboard = () => {
                             <p className="text-sm mt-2 text-muted-foreground">
                               Submitted {new Date(submission.created_at).toLocaleDateString()}
                             </p>
+                            <div className="mt-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-sm text-primary p-0 h-auto"
+                                onClick={() => navigate(`/survey/${submission.form_id}/results`)}
+                              >
+                                View details <ArrowUpRight className="h-3 w-3 ml-1" />
+                              </Button>
+                            </div>
                           </div>
                         );
                       })}
@@ -378,7 +379,7 @@ const Dashboard = () => {
                         </div>
                       </div>
                     </CardContent>
-                    <CardFooter className="flex justify-between">
+                    <CardFooter className="flex flex-wrap gap-2">
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => navigate(`/survey/${survey.id}`)}>
                           View Form
@@ -393,9 +394,19 @@ const Dashboard = () => {
                           Delete
                         </Button>
                       </div>
-                      <Button variant="default" size="sm" onClick={() => navigate(`/survey/${survey.id}/share`)}>
-                        Share Survey
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => navigate(`/survey/${survey.id}/results`)}
+                        >
+                          <BarChart2 className="h-4 w-4 mr-1" />
+                          Analytics
+                        </Button>
+                        <Button variant="default" size="sm" onClick={() => navigate(`/survey/${survey.id}/share`)}>
+                          Share Survey
+                        </Button>
+                      </div>
                     </CardFooter>
                   </Card>
                 );
@@ -476,6 +487,11 @@ const Dashboard = () => {
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
+                  <CardFooter>
+                    <p className="text-xs text-muted-foreground">
+                      Click on "Analytics" button on any survey card to see detailed survey analytics
+                    </p>
+                  </CardFooter>
                 </Card>
               </>
             )}
