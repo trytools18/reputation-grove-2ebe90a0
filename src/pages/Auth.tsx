@@ -8,11 +8,15 @@ import { Label } from "@/components/ui/label";
 import { signIn, signUp, useSession, getUserProfile } from "@/lib/auth";
 import { toast } from "sonner";
 
-const Auth = () => {
+interface AuthProps {
+  isSignUp?: boolean;
+}
+
+const Auth = ({ isSignUp }: AuthProps = {}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isLoading } = useSession();
-  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
+  const [activeTab, setActiveTab] = useState<"login" | "signup">(isSignUp ? "signup" : "login");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form states
