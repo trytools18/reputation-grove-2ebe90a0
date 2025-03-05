@@ -3,6 +3,17 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
+export type UserProfile = {
+  id: string;
+  business_name: string;
+  email: string | null;
+  business_category?: string;
+  city?: string;
+  onboarding_completed?: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
 export type AuthSession = {
   user: User | null;
   userProfile: UserProfile | null;
@@ -20,17 +31,6 @@ export type SignUpData = {
 export type SignInData = {
   email: string;
   password: string;
-};
-
-export type UserProfile = {
-  id: string;
-  business_name: string;
-  email: string | null;
-  business_category?: string;
-  city?: string;
-  onboarding_completed?: boolean;
-  created_at: string | null;
-  updated_at: string | null;
 };
 
 const AuthContext = createContext<AuthSession | undefined>(undefined);

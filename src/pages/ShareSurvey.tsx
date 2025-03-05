@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Copy, Share } from "lucide-react";
+import { ArrowLeft, Copy, QrCode } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { QRCodeSVG } from 'qrcode.react';
+import { Input } from '@/components/ui/input';
 
 const ShareSurvey = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,7 +15,7 @@ const ShareSurvey = () => {
   const { toast } = useToast();
   const [survey, setSurvey] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [surveyUrl, setSurveyUrl] = useState("");
+  const [shareUrl, setShareUrl] = useState("");
 
   useEffect(() => {
     const fetchSurvey = async () => {
@@ -33,9 +33,10 @@ const ShareSurvey = () => {
         
         setSurvey(data);
         
-        // Create a public survey URL
+        // Create share URL
         const baseUrl = window.location.origin;
-        setSurveyUrl(`${baseUrl}/survey-view/${id}`);
+        setShareUrl(`${baseUrl}/survey-view/${id}`);
+        
       } catch (error: any) {
         console.error("Error fetching survey:", error);
         toast({
@@ -52,10 +53,10 @@ const ShareSurvey = () => {
     fetchSurvey();
   }, [id, navigate, toast]);
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(surveyUrl);
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(shareUrl);
     toast({
-      title: "Link copied",
+      title: "Copied!",
       description: "Survey link copied to clipboard"
     });
   };
@@ -86,53 +87,81 @@ const ShareSurvey = () => {
         </Button>
       </div>
       
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Share Your Survey</h1>
-          <p className="text-muted-foreground mt-1">
-            Share your survey with customers to collect feedback
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Share Link</CardTitle>
+            <CardTitle>Share Your Survey</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex space-x-2">
-              <Input value={surveyUrl} readOnly className="flex-1" />
-              <Button size="icon" onClick={handleCopyLink}>
-                <Copy className="h-4 w-4" />
-              </Button>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Survey Link</p>
+                <div className="flex">
+                  <Input value={shareUrl} readOnly className="rounded-r-none" />
+                  <Button 
+                    variant="outline" 
+                    className="rounded-l-none"
+                    onClick={copyToClipboard}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div>
+                <Button 
+                  variant="secondary" 
+                  className="w-full mt-4"
+                  onClick={() => navigate(`/survey-detail/${id}`)}
+                >
+                  View Results
+                </Button>
+              </div>
             </div>
-            <Button className="w-full" onClick={handleCopyLink}>
-              <Copy className="h-4 w-4 mr-2" />
-              Copy Link
-            </Button>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>QR Code</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <QrCode className="h-5 w-5" />
+              QR Code
+            </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center">
-            <div className="bg-white p-4 rounded-lg">
-              <QRCodeSVG value={surveyUrl} size={180} />
+          <CardContent className="flex flex-col items-center">
+            <div className="border p-4 rounded-md bg-white">
+              <QRCodeSVG 
+                value={shareUrl} 
+                size={200}
+              />
             </div>
-            <Button className="mt-4" onClick={() => {
-              // Create a temporary link to download the QR code
-              const canvas = document.querySelector('canvas');
-              if (canvas) {
-                const url = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `survey-qr-${id}.png`;
-                link.click();
-              }
-            }}>
+            <p className="text-sm text-muted-foreground mt-4">
+              Scan this QR code to access the survey
+            </p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => {
+                // Create canvas and download QR code as image
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const svg = document.querySelector('svg');
+                if (svg && ctx) {
+                  const svgData = new XMLSerializer().serializeToString(svg);
+                  const img = new Image();
+                  img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    const a = document.createElement('a');
+                    a.download = `survey-qr-${id}.png`;
+                    a.href = canvas.toDataURL('image/png');
+                    a.click();
+                  };
+                  img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+                }
+              }}
+            >
               Download QR Code
             </Button>
           </CardContent>
