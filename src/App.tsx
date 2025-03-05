@@ -67,6 +67,7 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Auth />} />
             <Route path="/signup" element={<Auth isSignUp />} />
+            <Route path="/auth" element={<Auth />} /> {/* Add this route to handle /auth links */}
             <Route path="/survey/:id" element={<SurveyView />} />
             
             {/* Protected dashboard routes */}

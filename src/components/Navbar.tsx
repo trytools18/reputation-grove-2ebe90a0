@@ -47,7 +47,7 @@ const Navbar = () => {
   }
 
   const handleLogin = () => {
-    navigate("/auth")
+    navigate("/login")
   }
 
   return (
@@ -102,7 +102,7 @@ const Navbar = () => {
               <Button variant="outline" className="rounded-full px-5" onClick={handleLogin}>
                 {t('common.login')}
               </Button>
-              <Button className="rounded-full px-5" onClick={() => navigate("/auth?tab=signup")}>
+              <Button className="rounded-full px-5" onClick={() => navigate("/signup")}>
                 {t('common.signup')}
               </Button>
             </>
@@ -172,7 +172,7 @@ const Navbar = () => {
                   <Button variant="outline" className="w-full rounded-full" onClick={handleLogin}>
                     {t('common.login')}
                   </Button>
-                  <Button className="w-full rounded-full" onClick={() => navigate("/auth?tab=signup")}>
+                  <Button className="w-full rounded-full" onClick={() => navigate("/signup")}>
                     {t('common.signup')}
                   </Button>
                 </>
