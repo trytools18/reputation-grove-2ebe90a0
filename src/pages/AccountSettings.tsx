@@ -9,22 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, Loader2 } from "lucide-react";
-
-// Use the same business categories and cities as in the Onboarding page
-const businessCategories = [
-  { value: "restaurant", label: "Restaurant" },
-  { value: "barbershop", label: "Barbershop" },
-  { value: "hotel", label: "Hotel" },
-  { value: "coffee", label: "Coffee Shop" },
-];
-
-const greekCities = [
-  { value: "athens", label: "Athens" },
-  { value: "thessaloniki", label: "Thessaloniki" },
-  { value: "patras", label: "Patras" },
-  { value: "heraklion", label: "Heraklion" },
-  { value: "larissa", label: "Larissa" },
-];
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useBusinessCategories, useGreekCities } from "@/lib/i18n/businessData";
 
 const AccountSettings = () => {
   const { profile, isLoading, refetch } = useUserProfile();
@@ -36,6 +22,9 @@ const AccountSettings = () => {
   });
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
+  const businessCategories = useBusinessCategories();
+  const greekCities = useGreekCities();
 
   // Once profile is loaded, set the form data
   useEffect(() => {
@@ -65,13 +54,13 @@ const AccountSettings = () => {
       await updateUserProfile(formData);
       await refetch();
       toast({
-        title: "Settings updated",
-        description: "Your account settings have been updated successfully.",
+        title: t("settings_updated"),
+        description: t("settings_updated_success"),
       });
     } catch (error: any) {
       toast({
-        title: "Error updating settings",
-        description: error.message || "There was an error updating your settings.",
+        title: t("error_updating_settings"),
+        description: error.message || t("error"),
         variant: "destructive",
       });
     } finally {
@@ -97,39 +86,39 @@ const AccountSettings = () => {
           onClick={() => navigate("/dashboard")}
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Back
+          {t("back")}
         </Button>
-        <h1 className="text-3xl font-bold">Account Settings</h1>
+        <h1 className="text-3xl font-bold">{t("account_settings_title")}</h1>
       </div>
 
       <form onSubmit={handleSubmit}>
         <Card>
           <CardHeader>
-            <CardTitle>Business Profile</CardTitle>
+            <CardTitle>{t("business_profile")}</CardTitle>
             <CardDescription>
-              Update your business information
+              {t("update_business_info")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="business_name">Business Name</Label>
+              <Label htmlFor="business_name">{t("business_name_label")}</Label>
               <Input 
                 id="business_name"
                 name="business_name"
                 value={formData.business_name}
                 onChange={handleInputChange}
-                placeholder="Your business name"
+                placeholder={t("business_name")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="business_category">Business Category</Label>
+              <Label htmlFor="business_category">{t("business_category")}</Label>
               <Select 
                 value={formData.business_category}
                 onValueChange={(value) => handleSelectChange("business_category", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select business category" />
+                  <SelectValue placeholder={t("select_business_category")} />
                 </SelectTrigger>
                 <SelectContent>
                   {businessCategories.map((category) => (
@@ -142,13 +131,13 @@ const AccountSettings = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
+              <Label htmlFor="city">{t("city")}</Label>
               <Select
                 value={formData.city}
                 onValueChange={(value) => handleSelectChange("city", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select your city" />
+                  <SelectValue placeholder={t("select_city")} />
                 </SelectTrigger>
                 <SelectContent>
                   {greekCities.map((city) => (
@@ -165,9 +154,9 @@ const AccountSettings = () => {
               {isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {t("saving")}
                 </>
-              ) : "Save Changes"}
+              ) : t("save_changes")}
             </Button>
           </CardFooter>
         </Card>

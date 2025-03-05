@@ -6,6 +6,47 @@ import { Textarea } from "@/components/ui/textarea";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase, QUESTION_TYPES } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { LanguageProvider, useLanguage } from "@/lib/i18n/LanguageContext";
+import { Globe } from "lucide-react";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+
+// Language switcher component specifically for the survey view
+const SurveyLanguageSwitcher = () => {
+  const { language, setLanguage, t } = useLanguage();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1">
+          <Globe className="h-4 w-4" />
+          <span>{t("language")}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
+          {t("english")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setLanguage("el")} className={language === "el" ? "bg-accent" : ""}>
+          {t("greek")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+// Wrap the main SurveyView component with the language provider
+const SurveyViewWithLanguage = () => {
+  return (
+    <LanguageProvider>
+      <SurveyView />
+    </LanguageProvider>
+  );
+};
 
 const SurveyView = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +62,7 @@ const SurveyView = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Effect to handle auto-redirect
   useEffect(() => {
@@ -64,7 +106,7 @@ const SurveyView = () => {
         }
         
         if (!formData) {
-          setError("Survey not found");
+          setError(t("survey_not_found"));
           setIsLoading(false);
           return;
         }
@@ -101,10 +143,10 @@ const SurveyView = () => {
         setAnswers(initialAnswers);
       } catch (error: any) {
         console.error("Error fetching survey:", error);
-        setError(error.message || "Could not load the survey");
+        setError(error.message || t("error"));
         toast({
-          title: "Error loading survey",
-          description: error.message || "Could not load the survey",
+          title: t("error"),
+          description: error.message || t("error"),
           variant: "destructive"
         });
       } finally {
@@ -113,7 +155,7 @@ const SurveyView = () => {
     };
     
     fetchSurveyData();
-  }, [id, toast]);
+  }, [id, toast, t]);
 
   const handleAnswerChange = (questionId: string, value: any) => {
     setAnswers(prev => ({
@@ -157,7 +199,7 @@ const SurveyView = () => {
       });
       
       if (!hasAnsweredSomething) {
-        throw new Error("Please answer at least one question");
+        throw new Error(t("answer_question"));
       }
       
       const ratingQuestions = questions.filter(q => q.type === QUESTION_TYPES.RATING);
@@ -185,8 +227,8 @@ const SurveyView = () => {
       }
       
       toast({
-        title: "Thank you for your feedback!",
-        description: "Your responses have been submitted successfully."
+        title: t("thank_you_feedback"),
+        description: t("feedback_submitted")
       });
       
       setSubmissionSuccess(true);
@@ -198,19 +240,19 @@ const SurveyView = () => {
         setShouldRedirect(true);
         
         toast({
-          title: "Redirecting to Google Maps",
-          description: "You'll be redirected to Google Maps to leave a review in a moment!"
+          title: t("redirecting_google_maps"),
+          description: t("redirecting_maps")
         });
       }
       
     } catch (error: any) {
       console.error("Error submitting survey:", error);
       toast({
-        title: "Error submitting survey",
-        description: error.message || "Could not submit your feedback",
+        title: t("error"),
+        description: error.message || t("error"),
         variant: "destructive"
       });
-      setError(error.message || "Could not submit your feedback");
+      setError(error.message || t("error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -229,11 +271,11 @@ const SurveyView = () => {
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-xl mx-auto">
           <CardHeader>
-            <CardTitle>Survey Not Found</CardTitle>
-            <CardDescription>The survey you're looking for does not exist or may have been deleted.</CardDescription>
+            <CardTitle>{t("survey_not_found")}</CardTitle>
+            <CardDescription>{t("survey_not_found_description")}</CardDescription>
           </CardHeader>
           <CardFooter>
-            <Button variant="outline" onClick={() => window.history.back()}>Go Back</Button>
+            <Button variant="outline" onClick={() => window.history.back()}>{t("go_back")}</Button>
           </CardFooter>
         </Card>
       </div>
@@ -245,13 +287,13 @@ const SurveyView = () => {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Card>
           <CardHeader>
-            <CardTitle>Thank You!</CardTitle>
-            <CardDescription>Your feedback has been submitted successfully.</CardDescription>
+            <CardTitle>{t("thank_you")}</CardTitle>
+            <CardDescription>{t("feedback_submitted")}</CardDescription>
           </CardHeader>
           <CardContent>
             {shouldRedirect && (
               <p className="text-center mb-4">
-                You will be redirected to Google Maps to leave a review momentarily...
+                {t("redirecting_maps")}
               </p>
             )}
           </CardContent>
@@ -262,10 +304,13 @@ const SurveyView = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="flex justify-end mb-4">
+        <SurveyLanguageSwitcher />
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>{survey.restaurant_name}</CardTitle>
-          <CardDescription>Please share your feedback with us</CardDescription>
+          <CardDescription>{t("please_share_feedback")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {questions.length === 0 ? (
@@ -315,7 +360,7 @@ const SurveyView = () => {
                   <Textarea
                     className="w-full"
                     rows={4}
-                    placeholder="Enter your response here..."
+                    placeholder={t("enter_response")}
                     value={answers[question.id] || ''}
                     onChange={(e) => handleAnswerChange(question.id, e.target.value)}
                   />
@@ -336,10 +381,10 @@ const SurveyView = () => {
             {isSubmitting ? (
               <>
                 <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                Submitting...
+                {t("submitting")}
               </>
             ) : (
-              "Submit Feedback"
+              t("submit_feedback")
             )}
           </Button>
         </CardFooter>
@@ -348,4 +393,4 @@ const SurveyView = () => {
   );
 };
 
-export default SurveyView;
+export default SurveyViewWithLanguage;
