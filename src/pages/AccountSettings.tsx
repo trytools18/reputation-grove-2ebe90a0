@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserProfile, updateUserProfile } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -7,20 +7,23 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
-const BUSINESS_CATEGORIES = [
-  "Restaurant",
-  "Cafe",
-  "Bar",
-  "Hotel",
-  "Retail",
-  "Service",
-  "Healthcare",
-  "Education",
-  "Other"
+// Use the same business categories and cities as in the Onboarding page
+const businessCategories = [
+  { value: "restaurant", label: "Restaurant" },
+  { value: "barbershop", label: "Barbershop" },
+  { value: "hotel", label: "Hotel" },
+  { value: "coffee", label: "Coffee Shop" },
+];
+
+const greekCities = [
+  { value: "athens", label: "Athens" },
+  { value: "thessaloniki", label: "Thessaloniki" },
+  { value: "patras", label: "Patras" },
+  { value: "heraklion", label: "Heraklion" },
+  { value: "larissa", label: "Larissa" },
 ];
 
 const AccountSettings = () => {
@@ -35,7 +38,7 @@ const AccountSettings = () => {
   const { toast } = useToast();
 
   // Once profile is loaded, set the form data
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       setFormData({
         business_name: profile.business_name || "",
@@ -43,7 +46,7 @@ const AccountSettings = () => {
         city: profile.city || "",
       });
     }
-  });
+  }, [profile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -129,9 +132,9 @@ const AccountSettings = () => {
                   <SelectValue placeholder="Select business category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {BUSINESS_CATEGORIES.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                  {businessCategories.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -140,17 +143,25 @@ const AccountSettings = () => {
 
             <div className="space-y-2">
               <Label htmlFor="city">City</Label>
-              <Input 
-                id="city"
-                name="city"
+              <Select
                 value={formData.city}
-                onChange={handleInputChange}
-                placeholder="City where your business is located"
-              />
+                onValueChange={(value) => handleSelectChange("city", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your city" />
+                </SelectTrigger>
+                <SelectContent>
+                  {greekCities.map((city) => (
+                    <SelectItem key={city.value} value={city.value}>
+                      {city.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isSaving}>
+            <Button type="submit" disabled={isSaving} variant="success">
               {isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
