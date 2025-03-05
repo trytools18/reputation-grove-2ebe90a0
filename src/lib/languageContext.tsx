@@ -134,6 +134,7 @@ export const translations = {
     'survey.shareSurvey': 'Share Survey',
     'survey.customerSatisfaction': 'Customer Satisfaction Survey',
     'survey.designCustomize': 'Design and customize your feedback survey',
+    'survey.addQuestion': 'Add question',
 
     // Template Page
     'template.title': 'Survey Templates',
@@ -334,7 +335,6 @@ export const translations = {
     'survey.preview': 'Προεπισκόπηση',
     'survey.saving': 'Αποθήκευση...',
     'survey.saveSurvey': 'Αποθήκευση Έρευνας',
-    'survey.addQuestion': 'Προσθήκη Ερώτησης',
     'survey.noQuestions': 'Δεν έχουν προστεθεί ερωτήσεις ακόμα',
     'survey.addFirst': 'Προσθέστε την πρώτη σας ερώτηση',
     'survey.surveyInfo': 'Πληροφορίες Έρευνας',
@@ -396,7 +396,7 @@ export const translations = {
     'surveyView.submitting': 'Υποβολή...',
     'surveyView.submitFeedback': 'Υποβολή Σχολίων',
     'surveyView.thankYou': 'Ευχαριστούμε!',
-    'surveyView.thankYouDesc': 'Τα σχόλιά σας υποβλήθηκαν με επιτυχία.',
+    'surveyView.thankYouDesc': 'Τα σχόλια σας υποβλήθηκαν με επιτυχία.',
     'surveyView.redirectingToGoogle': 'Θα ανακατευθυνθείτε στο Google Maps για να αφήσετε μια κριτική σε λίγο...',
     'surveyView.errorSubmitting': 'Σφάλμα υποβολής έρευνας',
     'surveyView.answerAtLeastOne': 'Παρακαλούμε απαντήστε τουλάχιστον σε μία ερώτηση',
