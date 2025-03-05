@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'en' | 'el';
@@ -540,4 +541,41 @@ export const translations = {
     'survey.preview': 'Προεπισκόπηση',
     'survey.saving': 'Αποθήκευση...',
     'survey.saveSurvey': 'Αποθήκευση Έρευνας',
-    'survey.noQuestions': 'Δεν έχουν προστεθεί
+    'survey.noQuestions': 'Δεν έχουν προστεθεί ερωτήσεις ακόμα',
+    'survey.addFirst': 'Προσθέστε την πρώτη σας ερώτηση'
+  }
+};
+
+export const LanguageProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  const [language, setLanguage] = useState<Language>(() => {
+    // Try to get the language from localStorage
+    const savedLanguage = localStorage.getItem('language') as Language;
+    return savedLanguage || defaultLanguage;
+  });
+
+  useEffect(() => {
+    // Save language preference to localStorage
+    localStorage.setItem('language', language);
+  }, [language]);
+
+  const t = (key: string): string => {
+    const currentTranslations = translations[language];
+    return currentTranslations[key as keyof typeof currentTranslations] || key;
+  };
+
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+export const useLanguage = () => {
+  const context = useContext(LanguageContext);
+  if (context === undefined) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+};
+
+export default LanguageProvider;
