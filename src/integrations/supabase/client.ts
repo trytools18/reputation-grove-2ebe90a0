@@ -59,26 +59,13 @@ export const convertTemplateToSurvey = async (templateId: string, businessName: 
     }
     
     // 3. Convert template questions to form questions
-    // Make sure the question type matches one of the allowed types in QUESTION_TYPES
-    const questionsToInsert = templateQuestions.map((q, index) => {
-      // Validate and transform the type to ensure it matches allowed values
-      let validType = q.type;
-      
-      // Check if type needs to be normalized to match DB constraints
-      if (!Object.values(QUESTION_TYPES).includes(q.type)) {
-        // Try to find a matching type from our FRONTEND_TO_DB_TYPE mapping
-        validType = FRONTEND_TO_DB_TYPE[q.type.toLowerCase()] || QUESTION_TYPES.TEXT;
-        console.log(`Normalized question type from ${q.type} to ${validType}`);
-      }
-      
-      return {
-        form_id: formData.id,
-        text: q.text,
-        type: validType,
-        options: q.options,
-        order: index
-      };
-    });
+    const questionsToInsert = templateQuestions.map((q, index) => ({
+      form_id: formData.id,
+      text: q.text,
+      type: q.type,
+      options: q.options,
+      order: index
+    }));
     
     // 4. Insert questions
     const { error: insertError } = await supabase
@@ -91,27 +78,6 @@ export const convertTemplateToSurvey = async (templateId: string, businessName: 
   } catch (error: any) {
     console.error("Error converting template to survey:", error);
     return { id: null, error: error.message || "Failed to create survey from template" };
-  }
-};
-
-// Function to fetch global analytics data for comparison
-export const fetchGlobalAnalytics = async (city: string, businessCategory: string) => {
-  try {
-    const { data, error } = await supabase
-      .from('global_analytics')
-      .select('*')
-      .eq('city', city)
-      .eq('business_category', businessCategory)
-      .single();
-    
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned" - not an error for us
-      throw error;
-    }
-    
-    return { data, error: null };
-  } catch (error: any) {
-    console.error("Error fetching global analytics:", error);
-    return { data: null, error: error.message || "Failed to fetch global analytics" };
   }
 };
 

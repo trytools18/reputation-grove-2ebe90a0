@@ -12,7 +12,6 @@ export type Database = {
       forms: {
         Row: {
           created_at: string | null
-          global_analytics_visible: boolean | null
           google_maps_url: string
           id: string
           minimum_positive_rating: number
@@ -22,7 +21,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          global_analytics_visible?: boolean | null
           google_maps_url: string
           id?: string
           minimum_positive_rating?: number
@@ -32,7 +30,6 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          global_analytics_visible?: boolean | null
           google_maps_url?: string
           id?: string
           minimum_positive_rating?: number
@@ -217,16 +214,7 @@ export type Database = {
       }
     }
     Views: {
-      global_analytics: {
-        Row: {
-          average_rating: number | null
-          business_category: string | null
-          city: string | null
-          total_submissions: number | null
-          total_surveys: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       [_ in never]: never

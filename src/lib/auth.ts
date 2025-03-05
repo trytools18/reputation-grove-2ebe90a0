@@ -1,23 +1,10 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
-
-export type UserProfile = {
-  id: string;
-  business_name: string;
-  email: string | null;
-  business_category?: string;
-  city?: string;
-  onboarding_completed?: boolean;
-  created_at: string | null;
-  updated_at: string | null;
-};
 
 export type AuthSession = {
   user: User | null;
-  userProfile: UserProfile | null;
-  session: boolean;
   isLoading: boolean;
   error: Error | null;
 };
@@ -33,16 +20,24 @@ export type SignInData = {
   password: string;
 };
 
-const AuthContext = createContext<AuthSession | undefined>(undefined);
+export type UserProfile = {
+  id: string;
+  business_name: string;
+  email: string | null;
+  business_category?: string;
+  city?: string;
+  onboarding_completed?: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+};
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function useSession(): AuthSession {
   const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    async function getSessionAndProfile() {
+    async function getSession() {
       try {
         setIsLoading(true);
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -53,21 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           setUser(session.user);
-          
-          // Fetch user profile
-          const { data, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-            
-          if (profileError) {
-            console.error("Error fetching profile:", profileError);
-          }
-          
-          if (data) {
-            setUserProfile(data as UserProfile);
-          }
         }
       } catch (error) {
         setError(error as Error);
@@ -76,30 +56,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    getSessionAndProfile();
+    getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (session?.user) {
           setUser(session.user);
-          
-          // Fetch user profile when auth state changes
-          const { data, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-            
-          if (profileError) {
-            console.error("Error fetching profile:", profileError);
-          }
-          
-          if (data) {
-            setUserProfile(data as UserProfile);
-          }
         } else {
           setUser(null);
-          setUserProfile(null);
         }
         setIsLoading(false);
       }
@@ -110,27 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ 
-      user, 
-      userProfile, 
-      session: !!user, 
-      isLoading, 
-      error 
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
-
-export function useSession(): AuthSession {
-  const context = useContext(AuthContext);
-  
-  if (context === undefined) {
-    throw new Error("useSession must be used within an AuthProvider");
-  }
-  
-  return context;
+  return { user, isLoading, error };
 }
 
 export async function signUp({ email, password, businessName }: SignUpData) {
