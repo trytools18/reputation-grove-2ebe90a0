@@ -23,6 +23,7 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [businessName, setBusinessName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   useEffect(() => {
     // Check URL parameters for tab selection
@@ -39,13 +40,16 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
       if (user && !isLoading) {
         try {
           const profile = await getUserProfile();
+          // Always check if onboarding is completed first
           if (profile && !profile.onboarding_completed) {
             navigate("/onboarding");
-          } else {
-            navigate("/dashboard");
+            return;
           }
+          // If onboarding is completed, go to dashboard
+          navigate("/dashboard");
         } catch (error) {
           console.error("Error checking profile:", error);
+          // If there's an error fetching the profile, default to dashboard
           navigate("/dashboard");
         }
       }
@@ -80,8 +84,14 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
       return;
     }
 
+    if (!phoneNumber) {
+      toast.error("Phone number is required");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      await signUp({ email, password, businessName });
+      await signUp({ email, password, businessName, phoneNumber });
       toast.success("Account created! Please check your email to confirm your registration.");
       setActiveTab("login");
     } catch (error: any) {
@@ -172,6 +182,19 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
                   placeholder="Enter your business name"
+                  required
+                  className="w-full"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber">Phone Number</Label>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="Enter your phone number"
                   required
                   className="w-full"
                 />

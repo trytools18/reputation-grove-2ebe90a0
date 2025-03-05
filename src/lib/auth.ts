@@ -12,6 +12,7 @@ export type SignUpData = {
   email: string;
   password: string;
   businessName: string;
+  phoneNumber?: string;
 };
 
 export type SignInData = {
@@ -23,6 +24,7 @@ export type UserProfile = {
   id: string;
   business_name: string;
   email: string | null;
+  phone_number?: string;
   business_category?: string;
   city?: string;
   onboarding_completed?: boolean;
@@ -76,14 +78,16 @@ export function useSession(): AuthSession {
   return { user, isLoading, error };
 }
 
-export async function signUp({ email, password, businessName }: SignUpData) {
+export async function signUp({ email, password, businessName, phoneNumber }: SignUpData) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
         business_name: businessName,
+        phone_number: phoneNumber,
       },
+      emailRedirectTo: window.location.origin + "/auth",
     },
   });
 
