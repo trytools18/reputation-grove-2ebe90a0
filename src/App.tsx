@@ -11,39 +11,91 @@ import SurveyView from "./pages/SurveyView";
 import SurveyResults from "./pages/SurveyResults";
 import Templates from "./pages/Templates";
 import { useSession } from "./lib/auth";
+import { Toaster } from "@/components/ui/toaster";
+import { Suspense, lazy } from "react";
+import { Loader2 } from "lucide-react";
+
+// Create a loading component for suspense fallback
+const LoadingFallback = () => (
+  <div className="h-screen flex items-center justify-center">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
+
+// Protected route wrapper component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useSession();
+  
+  if (isLoading) {
+    return <LoadingFallback />;
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 const App = () => {
-  const { user, isLoading } = useSession();
+  const { isLoading } = useSession();
 
   if (isLoading) {
-    return <div className="h-screen flex items-center justify-center">Loading...</div>;
+    return <LoadingFallback />;
   }
 
   return (
     <Router>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Index />} />
-        <Route path="/login" element={<Auth />} />
-        <Route path="/signup" element={<Auth isSignUp />} />
-        <Route path="/survey/:id" element={<SurveyView />} />
-        <Route path="*" element={<NotFound />} />
-
-        {/* Protected routes */}
-        {user ? (
-          <>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/create-survey" element={<SurveyCreator />} />
-            <Route path="/edit-survey" element={<SurveyCreator />} />
-            <Route path="/survey/:id/share" element={<SurveyShare />} />
-            <Route path="/survey/:id/results" element={<SurveyResults />} />
-            <Route path="/templates" element={<Templates />} />
-          </>
-        ) : (
-          <Route path="/dashboard" element={<Navigate to="/login" replace />} />
-        )}
-      </Routes>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Auth />} />
+          <Route path="/signup" element={<Auth isSignUp />} />
+          <Route path="/survey/:id" element={<SurveyView />} />
+          
+          {/* Protected routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/onboarding" element={
+            <ProtectedRoute>
+              <Onboarding />
+            </ProtectedRoute>
+          } />
+          <Route path="/create-survey" element={
+            <ProtectedRoute>
+              <SurveyCreator />
+            </ProtectedRoute>
+          } />
+          <Route path="/edit-survey" element={
+            <ProtectedRoute>
+              <SurveyCreator />
+            </ProtectedRoute>
+          } />
+          <Route path="/survey/:id/share" element={
+            <ProtectedRoute>
+              <SurveyShare />
+            </ProtectedRoute>
+          } />
+          <Route path="/survey/:id/results" element={
+            <ProtectedRoute>
+              <SurveyResults />
+            </ProtectedRoute>
+          } />
+          <Route path="/templates" element={
+            <ProtectedRoute>
+              <Templates />
+            </ProtectedRoute>
+          } />
+          
+          {/* Fallback route */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+      <Toaster />
     </Router>
   );
 };

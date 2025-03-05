@@ -59,7 +59,7 @@ export function useSession(): AuthSession {
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (_event, session) => {
         if (session?.user) {
           setUser(session.user);
         } else {
