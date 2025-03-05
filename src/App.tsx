@@ -1,116 +1,59 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import SurveyCreator from "./components/SurveyCreator";
-import Auth from "./pages/Auth";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider, useSession } from "./lib/auth";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
+import CreateSurvey from "./pages/CreateSurvey";
+import Survey from "./pages/Survey";
+import ShareSurvey from "./pages/ShareSurvey";
 import Templates from "./pages/Templates";
-import SurveyShare from "./pages/SurveyShare";
-import SurveyView from "./pages/SurveyView";
-import { useSession, getUserProfile } from "./lib/auth";
+import SurveyDetail from "./pages/SurveyDetail";
+import "./App.css";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useSession();
-  
-  if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-    </div>;
-  }
-  
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-  
-  return <>{children}</>;
-};
-
-const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useSession();
-  const [isCheckingProfile, setIsCheckingProfile] = useState(true);
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
-  
-  useEffect(() => {
-    const checkOnboardingStatus = async () => {
-      if (user) {
-        try {
-          const profile = await getUserProfile();
-          if (profile && !profile.onboarding_completed) {
-            setNeedsOnboarding(true);
-          }
-        } catch (error) {
-          console.error("Error checking onboarding status:", error);
-        } finally {
-          setIsCheckingProfile(false);
-        }
-      } else {
-        setIsCheckingProfile(false);
-      }
-    };
-    
-    if (!isLoading) {
-      checkOnboardingStatus();
+function App() {
+  const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+    const { session } = useSession();
+    if (!session) {
+      return <Navigate to="/" />;
     }
-  }, [user, isLoading]);
-  
-  if (isLoading || isCheckingProfile) {
-    return <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-    </div>;
-  }
-  
-  if (needsOnboarding) {
-    return <Navigate to="/onboarding" replace />;
-  }
-  
-  return <>{children}</>;
-};
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+    return children;
+  };
+
+  const OnboardingCheck = ({ children }: { children: JSX.Element }) => {
+    const { user, userProfile } = useSession();
+
+    if (!user) {
+      return <Navigate to="/" />;
+    }
+
+    // If onboarding is not completed, redirect to onboarding page
+    if (userProfile && userProfile.onboarding_completed === false) {
+      return <Navigate to="/onboarding" />;
+    }
+
+    return children;
+  };
+
+  return (
+    <Router>
+      <AuthProvider>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route 
-            path="/onboarding" 
+          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route
+            path="/onboarding"
             element={
               <ProtectedRoute>
                 <Onboarding />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/create-survey" 
-            element={
-              <ProtectedRoute>
-                <OnboardingCheck>
-                  <SurveyCreator />
-                </OnboardingCheck>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/dashboard" 
+          <Route
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <OnboardingCheck>
@@ -119,8 +62,38 @@ const App = () => (
               </ProtectedRoute>
             }
           />
-          <Route 
-            path="/templates" 
+          <Route
+            path="/create-survey"
+            element={
+              <ProtectedRoute>
+                <OnboardingCheck>
+                  <CreateSurvey />
+                </OnboardingCheck>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/survey/:id"
+            element={
+              <ProtectedRoute>
+                <OnboardingCheck>
+                  <Survey />
+                </OnboardingCheck>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/survey/:id/share"
+            element={
+              <ProtectedRoute>
+                <OnboardingCheck>
+                  <ShareSurvey />
+                </OnboardingCheck>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/templates"
             element={
               <ProtectedRoute>
                 <OnboardingCheck>
@@ -129,33 +102,20 @@ const App = () => (
               </ProtectedRoute>
             }
           />
-          <Route 
-            path="/survey/:id/share" 
+          <Route
+            path="/survey-detail/:id"
             element={
               <ProtectedRoute>
                 <OnboardingCheck>
-                  <SurveyShare />
+                  <SurveyDetail />
                 </OnboardingCheck>
               </ProtectedRoute>
             }
           />
-          <Route 
-            path="/survey/:id" 
-            element={
-              <ProtectedRoute>
-                <OnboardingCheck>
-                  <SurveyCreator />
-                </OnboardingCheck>
-              </ProtectedRoute>
-            }
-          />
-          {/* Public survey viewing and submission route - accessible to anonymous users */}
-          <Route path="/s/:id" element={<SurveyView />} />
-          <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </AuthProvider>
+    </Router>
+  );
+}
 
 export default App;

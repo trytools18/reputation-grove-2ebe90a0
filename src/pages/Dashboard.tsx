@@ -1,12 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Pie, PieChart, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ComposedChart, Line } from "recharts";
-import { PlusCircle, BarChart as BarChartIcon, PieChart as PieChartIcon, ArrowUpRight, Trash2, Globe, TrendingUp } from "lucide-react";
+import { PlusCircle, BarChart as BarChartIcon, PieChart as PieChartIcon, ArrowUpRight, Trash2, Globe, TrendingUp, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { supabase, fetchGlobalAnalytics } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { useSession, getUserProfile } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -73,17 +72,68 @@ const Dashboard = () => {
         
         setSurveys(surveysData || []);
 
-        // Fetch global analytics if profile has city and business category
+        // Fetch real global analytics if profile has city and business category
         if (profile && profile.city && profile.business_category) {
           setIsLoadingGlobal(true);
-          const { data: globalData } = await fetchGlobalAnalytics(
-            profile.city,
-            profile.business_category
-          );
-
-          if (globalData) {
-            setGlobalAnalytics(globalData);
+          
+          try {
+            // Get all forms from businesses in the same city and category
+            const { data: cityBusinesses, error: cityError } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('city', profile.city)
+              .eq('business_category', profile.business_category)
+              .neq('id', user.id); // Exclude current user
+            
+            if (cityError) throw cityError;
+            
+            if (cityBusinesses && cityBusinesses.length > 0) {
+              const businessIds = cityBusinesses.map(business => business.id);
+              
+              // Get all forms from these businesses
+              const { data: otherForms, error: formsError } = await supabase
+                .from('forms')
+                .select('id')
+                .in('user_id', businessIds);
+                
+              if (formsError) throw formsError;
+              
+              if (otherForms && otherForms.length > 0) {
+                const formIds = otherForms.map(form => form.id);
+                
+                // Get submissions for these forms
+                const { data: otherSubmissions, error: subError } = await supabase
+                  .from('submissions')
+                  .select('*')
+                  .in('form_id', formIds);
+                  
+                if (subError) throw subError;
+                
+                // Calculate global analytics from real data
+                const totalSurveys = otherForms.length;
+                const totalSubmissions = otherSubmissions ? otherSubmissions.length : 0;
+                const avgRating = otherSubmissions && otherSubmissions.length > 0
+                  ? otherSubmissions.reduce((sum, sub) => sum + sub.average_rating, 0) / otherSubmissions.length
+                  : 0;
+                  
+                setGlobalAnalytics({
+                  total_surveys: totalSurveys,
+                  total_submissions: totalSubmissions,
+                  average_rating: avgRating
+                });
+              } else {
+                // No forms from other businesses in this category/city
+                setGlobalAnalytics(null);
+              }
+            } else {
+              // No other businesses in this category/city
+              setGlobalAnalytics(null);
+            }
+          } catch (error) {
+            console.error("Error fetching global analytics:", error);
+            setGlobalAnalytics(null);
           }
+          
           setIsLoadingGlobal(false);
         }
       } catch (error: any) {
@@ -445,6 +495,14 @@ const Dashboard = () => {
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => navigate(`/survey/${survey.id}`)}>
                           View Form
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => navigate(`/survey-detail/${survey.id}`)}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-1" />
+                          View Details
                         </Button>
                         <Button 
                           variant="outline" 
