@@ -10,6 +10,8 @@ import SurveyShare from "./pages/SurveyShare";
 import SurveyView from "./pages/SurveyView";
 import SurveyResults from "./pages/SurveyResults";
 import Templates from "./pages/Templates";
+import AccountSettings from "./pages/AccountSettings";
+import DashboardLayout from "./components/DashboardLayout";
 import { useSession } from "./lib/auth";
 import { Toaster } from "@/components/ui/toaster";
 import { Suspense, lazy } from "react";
@@ -37,6 +39,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Dashboard route wrapper component
+const DashboardRoute = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <ProtectedRoute>
+      <DashboardLayout>
+        {children}
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+};
+
 const App = () => {
   const { isLoading } = useSession();
 
@@ -54,11 +67,16 @@ const App = () => {
           <Route path="/signup" element={<Auth isSignUp />} />
           <Route path="/survey/:id" element={<SurveyView />} />
           
-          {/* Protected routes */}
+          {/* Protected dashboard routes */}
           <Route path="/dashboard" element={
-            <ProtectedRoute>
+            <DashboardRoute>
               <Dashboard />
-            </ProtectedRoute>
+            </DashboardRoute>
+          } />
+          <Route path="/account-settings" element={
+            <DashboardRoute>
+              <AccountSettings />
+            </DashboardRoute>
           } />
           <Route path="/onboarding" element={
             <ProtectedRoute>
@@ -66,29 +84,29 @@ const App = () => {
             </ProtectedRoute>
           } />
           <Route path="/create-survey" element={
-            <ProtectedRoute>
+            <DashboardRoute>
               <SurveyCreator />
-            </ProtectedRoute>
+            </DashboardRoute>
           } />
           <Route path="/edit-survey" element={
-            <ProtectedRoute>
+            <DashboardRoute>
               <SurveyCreator />
-            </ProtectedRoute>
+            </DashboardRoute>
           } />
           <Route path="/survey/:id/share" element={
-            <ProtectedRoute>
+            <DashboardRoute>
               <SurveyShare />
-            </ProtectedRoute>
+            </DashboardRoute>
           } />
           <Route path="/survey/:id/results" element={
-            <ProtectedRoute>
+            <DashboardRoute>
               <SurveyResults />
-            </ProtectedRoute>
+            </DashboardRoute>
           } />
           <Route path="/templates" element={
-            <ProtectedRoute>
+            <DashboardRoute>
               <Templates />
-            </ProtectedRoute>
+            </DashboardRoute>
           } />
           
           {/* Fallback route */}

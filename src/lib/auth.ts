@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
@@ -158,4 +157,48 @@ export async function updateUserProfile(updates: any) {
   }
 
   return data;
+}
+
+export function useUserProfile() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const { user } = useSession();
+
+  useEffect(() => {
+    async function fetchUserProfile() {
+      if (!user) {
+        setProfile(null);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const profileData = await getUserProfile();
+        setProfile(profileData);
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
+        setError(err as Error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchUserProfile();
+  }, [user]);
+
+  return { profile, isLoading, error, refetch: async () => {
+    if (user) {
+      try {
+        setIsLoading(true);
+        const profileData = await getUserProfile();
+        setProfile(profileData);
+      } catch (err) {
+        setError(err as Error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }};
 }

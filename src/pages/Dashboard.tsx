@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,7 +7,7 @@ import { Pie, PieChart, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 import { PlusCircle, BarChart as BarChartIcon, PieChart as PieChartIcon, ArrowUpRight, Trash2, BarChart2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useSession } from "@/lib/auth";
+import { useSession, useUserProfile } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -20,6 +21,7 @@ const Dashboard = () => {
   const [surveyToDelete, setSurveyToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { user } = useSession();
+  const { profile } = useUserProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -150,7 +152,7 @@ const Dashboard = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-3xl font-bold">Welcome, {profile?.business_name || "User"}</h1>
           <p className="text-muted-foreground mt-1">Monitor your feedback and analytics</p>
         </div>
         <div className="flex space-x-2">
