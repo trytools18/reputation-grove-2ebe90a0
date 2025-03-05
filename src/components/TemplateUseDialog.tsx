@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { convertTemplateToSurvey } from "@/integrations/supabase/client";
+import { convertTemplateToSurvey, QUESTION_TYPES } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -83,7 +83,16 @@ const TemplateUseDialog = ({ isOpen, onClose, template }: TemplateUseDialogProps
         user.id
       );
       
-      if (error) throw new Error(error);
+      if (error) {
+        if (error.includes("questions_type_check")) {
+          throw new Error("There's an issue with question types in the template. Please try a different template or contact support.");
+        }
+        throw new Error(error);
+      }
+      
+      if (!id) {
+        throw new Error("Failed to create survey. No ID returned.");
+      }
       
       toast({
         title: "Survey created",

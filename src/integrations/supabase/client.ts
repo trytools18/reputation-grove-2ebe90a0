@@ -59,13 +59,25 @@ export const convertTemplateToSurvey = async (templateId: string, businessName: 
     }
     
     // 3. Convert template questions to form questions
-    const questionsToInsert = templateQuestions.map((q, index) => ({
-      form_id: formData.id,
-      text: q.text,
-      type: q.type,
-      options: q.options,
-      order: index
-    }));
+    // Ensure the question type matches the allowed types in the database constraint
+    const questionsToInsert = templateQuestions.map((q, index) => {
+      // Validate and ensure the question type is one of the allowed types
+      let questionType = q.type;
+      
+      // Check if the type is valid, if not default to 'text'
+      if (![QUESTION_TYPES.RATING, QUESTION_TYPES.MULTIPLE_CHOICE, QUESTION_TYPES.TEXT].includes(questionType)) {
+        console.warn(`Invalid question type "${questionType}" detected. Defaulting to "text".`);
+        questionType = QUESTION_TYPES.TEXT;
+      }
+      
+      return {
+        form_id: formData.id,
+        text: q.text,
+        type: questionType,
+        options: q.options,
+        order: index
+      };
+    });
     
     // 4. Insert questions
     const { error: insertError } = await supabase
