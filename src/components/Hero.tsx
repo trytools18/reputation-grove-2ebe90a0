@@ -3,9 +3,11 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Chip } from "./ui/chip"
 import { ArrowRight, Star } from "lucide-react"
+import { useLanguage } from '@/lib/languageContext'
 
 const Hero = () => {
   const [isLoaded, setIsLoaded] = useState(false)
+  const { t } = useLanguage()
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -29,30 +31,28 @@ const Hero = () => {
             variant="outline" 
             className={`mb-6 transition-all duration-1000 delay-200 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-4'}`}
           >
-            Transform Customer Feedback into Growth
+            {t('home.transformFeedback')}
           </Chip>
 
           <h1 
             className={`text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-6'}`}
           >
-            Elevate Your Restaurant's <br />
-            <span className="text-primary">Reputation</span> with Ease
+            {t('home.elevateReputation')}
           </h1>
 
           <p 
             className={`text-lg text-foreground/80 mb-8 max-w-2xl mx-auto transition-all duration-1000 delay-400 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-8'}`}
           >
-            Turn customer feedback into glowing reviews. Collect insights, improve service, 
-            and boost your online presence with our intuitive reputation management platform.
+            {t('home.feedbackDesc')}
           </p>
 
           <div className={`flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-12 transition-all duration-1000 delay-500 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-10'}`}>
             <Button size="lg" className="rounded-full px-6 group">
-              Get started today
+              {t('home.getStartedToday')}
               <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
             </Button>
             <Button size="lg" variant="outline" className="rounded-full px-6">
-              View demo
+              {t('home.viewDemo')}
             </Button>
           </div>
 
@@ -70,7 +70,7 @@ const Hero = () => {
               <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
             </div>
             <p className="text-sm text-foreground/80">
-              <span className="font-medium">4.9/5</span> from over 100 restaurants
+              <span className="font-medium">4.9/5</span> {t('home.fromRestaurants')}
             </p>
           </div>
         </div>
@@ -84,8 +84,8 @@ const Hero = () => {
                 <div className="bg-white h-full rounded-lg shadow-sm p-6 flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-lg font-semibold">Dashboard Overview</h3>
-                      <p className="text-sm text-foreground/70">Last 30 days</p>
+                      <h3 className="text-lg font-semibold">{t('home.dashboardOverview')}</h3>
+                      <p className="text-sm text-foreground/70">{t('home.last30days')}</p>
                     </div>
                     <div className="flex space-x-2">
                       <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
@@ -99,9 +99,9 @@ const Hero = () => {
                   
                   <div className="grid grid-cols-3 gap-4 mb-6">
                     {[
-                      { label: "Total Reviews", value: "427" },
-                      { label: "Avg. Rating", value: "4.8" },
-                      { label: "Conversion Rate", value: "68%" }
+                      { label: t('home.totalReviews'), value: "427" },
+                      { label: t('home.avgRating'), value: "4.8" },
+                      { label: t('home.conversionRate'), value: "68%" }
                     ].map((stat, i) => (
                       <div key={i} className="bg-gray-50 rounded-lg p-4">
                         <p className="text-sm text-foreground/70 mb-1">{stat.label}</p>
@@ -112,7 +112,7 @@ const Hero = () => {
                   
                   <div className="flex-1 grid grid-cols-2 gap-4">
                     <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="text-sm font-medium mb-3">Rating Breakdown</h4>
+                      <h4 className="text-sm font-medium mb-3">{t('home.ratingBreakdown')}</h4>
                       <div className="space-y-2">
                         {[5, 4, 3, 2, 1].map((rating) => (
                           <div key={rating} className="flex items-center space-x-2">
@@ -133,7 +133,7 @@ const Hero = () => {
                       </div>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="text-sm font-medium mb-3">Recent Feedback</h4>
+                      <h4 className="text-sm font-medium mb-3">{t('home.recentFeedback')}</h4>
                       <div className="space-y-3">
                         {[
                           { rating: 5, text: "Great service and amazing food!" },

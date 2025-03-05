@@ -2,8 +2,11 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Facebook, Instagram, Twitter } from "lucide-react"
+import { useLanguage } from '@/lib/languageContext'
 
 const Footer = () => {
+  const { t } = useLanguage()
+
   return (
     <footer className="bg-gray-50 pt-20 pb-10">
       <div className="container mx-auto px-6">
@@ -11,12 +14,12 @@ const Footer = () => {
         <div className="bg-foreground text-white rounded-xl p-8 mb-16 max-w-5xl mx-auto text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(55,55,55,0.8),rgba(30,30,30,0))]" />
           <div className="relative z-10">
-            <h3 className="text-2xl md:text-3xl font-bold mb-4">Ready to transform your restaurant's reputation?</h3>
+            <h3 className="text-2xl md:text-3xl font-bold mb-4">{t('home.readyTransform')}</h3>
             <p className="mb-6 max-w-2xl mx-auto">
-              Join hundreds of successful restaurants already using our platform to collect feedback and improve their online presence.
+              {t('home.joinHundreds')}
             </p>
             <Button size="lg" className="bg-white text-foreground hover:bg-white/90 rounded-full px-6">
-              Get started for free
+              {t('home.getStartedFree')}
             </Button>
           </div>
         </div>
@@ -27,31 +30,37 @@ const Footer = () => {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-white font-semibold text-lg">R</span>
               </div>
-              <span className="font-semibold text-xl">Repute</span>
+              <span className="font-semibold text-xl">{t('app.name')}</span>
             </div>
             <p className="text-foreground/70 mb-6 max-w-md">
-              Helping restaurants and cafés transform customer feedback into growth and improved online reputation.
+              {t('footer.helpingRestaurants')}
             </p>
             <div className="mb-6">
-              <p className="font-medium mb-2">Subscribe to our newsletter</p>
+              <p className="font-medium mb-2">{t('footer.subscribeNewsletter')}</p>
               <div className="flex space-x-2">
                 <Input 
                   type="email" 
-                  placeholder="Enter your email" 
+                  placeholder={t('footer.enterEmail')} 
                   className="rounded-full bg-white" 
                 />
-                <Button className="rounded-full">Subscribe</Button>
+                <Button className="rounded-full">{t('footer.subscribe')}</Button>
               </div>
             </div>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Product</h4>
+            <h4 className="font-semibold mb-4">{t('footer.product')}</h4>
             <ul className="space-y-3">
-              {["Features", "Pricing", "Testimonials", "Case Studies", "API"].map((item, i) => (
+              {[
+                { key: 'footer.features', text: t('footer.features') },
+                { key: 'footer.pricing', text: t('footer.pricing') },
+                { key: 'footer.testimonials', text: t('footer.testimonials') },
+                { key: 'footer.caseStudies', text: t('footer.caseStudies') },
+                { key: 'footer.api', text: t('footer.api') }
+              ].map((item, i) => (
                 <li key={i}>
                   <a href="#" className="text-foreground/70 hover:text-foreground transition-colors">
-                    {item}
+                    {item.text}
                   </a>
                 </li>
               ))}
@@ -59,12 +68,18 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Company</h4>
+            <h4 className="font-semibold mb-4">{t('footer.company')}</h4>
             <ul className="space-y-3">
-              {["About", "Blog", "Careers", "Press", "Partners"].map((item, i) => (
+              {[
+                { key: 'footer.about', text: t('footer.about') },
+                { key: 'footer.blog', text: t('footer.blog') },
+                { key: 'footer.careers', text: t('footer.careers') },
+                { key: 'footer.press', text: t('footer.press') },
+                { key: 'footer.partners', text: t('footer.partners') }
+              ].map((item, i) => (
                 <li key={i}>
                   <a href="#" className="text-foreground/70 hover:text-foreground transition-colors">
-                    {item}
+                    {item.text}
                   </a>
                 </li>
               ))}
@@ -72,12 +87,18 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Support</h4>
+            <h4 className="font-semibold mb-4">{t('footer.support')}</h4>
             <ul className="space-y-3">
-              {["Help Center", "Contact Us", "Privacy Policy", "Terms of Service", "Status"].map((item, i) => (
+              {[
+                { key: 'footer.helpCenter', text: t('footer.helpCenter') },
+                { key: 'footer.contactUs', text: t('footer.contactUs') },
+                { key: 'footer.privacyPolicy', text: t('footer.privacyPolicy') },
+                { key: 'footer.termsOfService', text: t('footer.termsOfService') },
+                { key: 'footer.status', text: t('footer.status') }
+              ].map((item, i) => (
                 <li key={i}>
                   <a href="#" className="text-foreground/70 hover:text-foreground transition-colors">
-                    {item}
+                    {item.text}
                   </a>
                 </li>
               ))}
@@ -87,7 +108,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-foreground/70 mb-4 md:mb-0">
-            © 2023 Repute. All rights reserved.
+            {t('footer.allRightsReserved')}
           </p>
           <div className="flex space-x-4">
             <a href="#" className="text-foreground/70 hover:text-foreground transition-colors">

@@ -5,12 +5,15 @@ import { Menu, X, LogOut } from "lucide-react"
 import { useNavigate, Link } from "react-router-dom"
 import { useSession, signOut } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage } from '@/lib/languageContext'
+import LanguageSwitcher from './LanguageSwitcher'
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { user, isLoading } = useSession()
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const { toast } = useToast()
 
   useEffect(() => {
@@ -30,13 +33,13 @@ const Navbar = () => {
     try {
       await signOut()
       toast({
-        title: "Logged out",
-        description: "You have been successfully logged out",
+        title: t('auth.loggedOut'),
+        description: t('auth.loggedOutDesc'),
       })
       navigate("/")
     } catch (error: any) {
       toast({
-        title: "Error logging out",
+        title: t('auth.errorLoggingOut'),
         description: error.message,
         variant: "destructive",
       })
@@ -60,28 +63,30 @@ const Navbar = () => {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <span className="text-white font-semibold text-lg">R</span>
           </div>
-          <span className="font-semibold text-xl">Repute</span>
+          <span className="font-semibold text-xl">{t('app.name')}</span>
         </a>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           <a href="#features" className="text-foreground/80 hover:text-foreground transition-colors">
-            Features
+            {t('nav.features')}
           </a>
           <a href="#pricing" className="text-foreground/80 hover:text-foreground transition-colors">
-            Pricing
+            {t('nav.pricing')}
           </a>
           <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
-            About
+            {t('nav.about')}
           </a>
           {user && (
             <Link to="/create-survey" className="text-foreground/80 hover:text-foreground transition-colors">
-              Dashboard
+              {t('nav.dashboard')}
             </Link>
           )}
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
+          <LanguageSwitcher variant="ghost" minimal size="sm" />
+          
           {isLoading ? (
             <div className="h-10 w-20 bg-gray-200 animate-pulse rounded-full"></div>
           ) : user ? (
@@ -89,28 +94,32 @@ const Navbar = () => {
               <span className="text-sm font-medium">Hi, {user.email}</span>
               <Button variant="outline" className="rounded-full px-5 flex items-center gap-2" onClick={handleLogout}>
                 <LogOut size={16} />
-                Log out
+                {t('common.logout')}
               </Button>
             </div>
           ) : (
             <>
               <Button variant="outline" className="rounded-full px-5" onClick={handleLogin}>
-                Log in
+                {t('common.login')}
               </Button>
-              <Button className="rounded-full px-5" onClick={() => navigate("/auth?tab=signup")}>Sign up</Button>
+              <Button className="rounded-full px-5" onClick={() => navigate("/auth?tab=signup")}>
+                {t('common.signup')}
+              </Button>
             </>
           )}
         </div>
 
         {/* Mobile Menu Button */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="md:hidden" 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </Button>
+        <div className="md:hidden flex items-center gap-2">
+          <LanguageSwitcher variant="ghost" minimal size="sm" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </Button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -122,21 +131,21 @@ const Navbar = () => {
               className="py-2 text-foreground/80 hover:text-foreground transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Features
+              {t('nav.features')}
             </a>
             <a 
               href="#pricing" 
               className="py-2 text-foreground/80 hover:text-foreground transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Pricing
+              {t('nav.pricing')}
             </a>
             <a 
               href="#" 
               className="py-2 text-foreground/80 hover:text-foreground transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              About
+              {t('nav.about')}
             </a>
             {user && (
               <Link 
@@ -144,7 +153,7 @@ const Navbar = () => {
                 className="py-2 text-foreground/80 hover:text-foreground transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Dashboard
+                {t('nav.dashboard')}
               </Link>
             )}
             <div className="pt-4 flex flex-col space-y-3">
@@ -155,13 +164,17 @@ const Navbar = () => {
                   <div className="py-2 text-sm font-medium">Hi, {user.email}</div>
                   <Button variant="outline" className="w-full rounded-full flex items-center justify-center gap-2" onClick={handleLogout}>
                     <LogOut size={16} />
-                    Log out
+                    {t('common.logout')}
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button variant="outline" className="w-full rounded-full" onClick={handleLogin}>Log in</Button>
-                  <Button className="w-full rounded-full" onClick={() => navigate("/auth?tab=signup")}>Sign up</Button>
+                  <Button variant="outline" className="w-full rounded-full" onClick={handleLogin}>
+                    {t('common.login')}
+                  </Button>
+                  <Button className="w-full rounded-full" onClick={() => navigate("/auth?tab=signup")}>
+                    {t('common.signup')}
+                  </Button>
                 </>
               )}
             </div>

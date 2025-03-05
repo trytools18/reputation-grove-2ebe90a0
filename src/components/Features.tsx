@@ -2,9 +2,11 @@
 import { useEffect, useRef } from "react"
 import { Chip } from "./ui/chip"
 import { CheckCircle, QrCode, BarChart3, Zap, UserCheck, TrendingUp } from "lucide-react"
+import { useLanguage } from '@/lib/languageContext'
 
 const Features = () => {
   const featuresRef = useRef<HTMLDivElement>(null)
+  const { t } = useLanguage()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,33 +31,33 @@ const Features = () => {
   const features = [
     {
       icon: <QrCode className="text-primary h-6 w-6" />,
-      title: "Custom QR Codes",
-      description: "Generate unique QR codes that customers can scan to leave feedback about your business."
+      title: t('features.qrCodes.title'),
+      description: t('features.qrCodes.description')
     },
     {
       icon: <BarChart3 className="text-primary h-6 w-6" />,
-      title: "Comprehensive Analytics",
-      description: "Access detailed reports and insights on customer feedback to identify trends and areas for improvement."
+      title: t('features.analytics.title'),
+      description: t('features.analytics.description')
     },
     {
       icon: <UserCheck className="text-primary h-6 w-6" />,
-      title: "Review Redirection",
-      description: "Automatically redirect satisfied customers to leave reviews on Google Maps to boost your online presence."
+      title: t('features.redirection.title'),
+      description: t('features.redirection.description')
     },
     {
       icon: <Zap className="text-primary h-6 w-6" />,
-      title: "Instant Feedback",
-      description: "Collect and organize customer feedback in real-time to quickly address concerns and improve service."
+      title: t('features.feedback.title'),
+      description: t('features.feedback.description')
     },
     {
       icon: <TrendingUp className="text-primary h-6 w-6" />,
-      title: "Competitive Benchmarking",
-      description: "Compare your performance against industry standards and competitors in your area."
+      title: t('features.benchmarking.title'),
+      description: t('features.benchmarking.description')
     },
     {
       icon: <CheckCircle className="text-primary h-6 w-6" />,
-      title: "Customizable Surveys",
-      description: "Create tailored surveys with multiple question types to gather specific feedback from your customers."
+      title: t('features.surveys.title'),
+      description: t('features.surveys.description')
     }
   ]
 
@@ -63,11 +65,10 @@ const Features = () => {
     <section id="features" className="py-24 bg-gray-50" ref={featuresRef}>
       <div className="container mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto mb-16 reveal-on-scroll">
-          <Chip className="mb-4">Features</Chip>
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Everything You Need to Manage Your Reputation</h2>
+          <Chip className="mb-4">{t('features.title')}</Chip>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('features.heading')}</h2>
           <p className="text-foreground/80">
-            Our comprehensive solution provides all the tools necessary to collect, analyze, 
-            and leverage customer feedback to improve your business.
+            {t('features.description')}
           </p>
         </div>
 
@@ -90,17 +91,16 @@ const Features = () => {
         <div className="mt-16 max-w-4xl mx-auto bg-white rounded-xl border border-gray-100 shadow-lg overflow-hidden reveal-on-scroll">
           <div className="grid grid-cols-1 md:grid-cols-2">
             <div className="p-8 flex flex-col justify-center">
-              <h3 className="text-2xl font-semibold mb-4">Intelligent Review Routing</h3>
+              <h3 className="text-2xl font-semibold mb-4">{t('features.reviewRouting.title')}</h3>
               <p className="text-foreground/80 mb-6">
-                Our smart system automatically directs satisfied customers to leave reviews on Google Maps 
-                while privately collecting constructive feedback from less satisfied customers.
+                {t('features.reviewRouting.description')}
               </p>
               <ul className="space-y-3">
                 {[
-                  "Set custom rating thresholds",
-                  "Maximize positive online reviews",
-                  "Address concerns before they go public",
-                  "Improve reputation management efficiency"
+                  t('features.customThresholds'),
+                  t('features.maximizeReviews'),
+                  t('features.addressConcerns'),
+                  t('features.improveEfficiency')
                 ].map((item, i) => (
                   <li key={i} className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
@@ -114,7 +114,7 @@ const Features = () => {
                 <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-lg" />
                 <div className="relative bg-white rounded-lg shadow-md p-6 space-y-4">
                   <div className="space-y-2">
-                    <p className="text-lg font-medium text-center">How was your experience?</p>
+                    <p className="text-lg font-medium text-center">{t('features.experience')}</p>
                     <div className="flex justify-center space-x-2">
                       {[1, 2, 3, 4, 5].map((rating) => (
                         <div 
@@ -129,17 +129,17 @@ const Features = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Any additional comments?</p>
+                    <p className="text-sm font-medium">{t('features.additionalComments')}</p>
                     <div className="w-full h-20 bg-gray-50 rounded border border-gray-200" />
                   </div>
 
                   <button className="w-full py-2 bg-primary text-white rounded-lg">
-                    Submit Feedback
+                    {t('features.submitFeedback')}
                   </button>
 
                   <div className="pt-3 border-t border-gray-100">
                     <p className="text-xs text-center text-gray-500">
-                      5-star feedback will be redirected to Google Maps for a public review.
+                      {t('features.redirectExplanation')}
                     </p>
                   </div>
                 </div>
