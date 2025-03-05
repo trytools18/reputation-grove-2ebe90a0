@@ -29,8 +29,8 @@ const TextQuestionsSection = ({ questions, analytics, formatDate }: TextQuestion
               <div key={question.id} className="border-b pb-6 last:border-0 last:pb-0">
                 <h3 className="text-xl font-semibold mb-2">{question.text}</h3>
                 <div className="flex items-center mb-4">
-                  <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">Responses</span>
-                  <span>{stats.totalAnswered} text answers</span>
+                  <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">{t('common.responses')}</span>
+                  <span>{stats.totalAnswered} {t('survey.textResponse').toLowerCase()}</span>
                 </div>
                 
                 {stats.responses.length > 0 ? (
@@ -39,13 +39,13 @@ const TextQuestionsSection = ({ questions, analytics, formatDate }: TextQuestion
                       <div key={i} className="p-3 bg-slate-50 rounded-md border border-slate-200">
                         <p className="mb-1">{resp.response}</p>
                         <p className="text-xs text-muted-foreground">
-                          Submitted: {formatDate(resp.timestamp)}
+                          {t('dashboard.submitted')}: {formatDate(resp.timestamp)}
                         </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground italic">No text responses received yet</p>
+                  <p className="text-muted-foreground italic">{t('surveyResults.noResponses')}</p>
                 )}
               </div>
             );

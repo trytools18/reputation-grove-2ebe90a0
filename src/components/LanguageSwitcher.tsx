@@ -9,19 +9,21 @@ interface LanguageSwitcherProps {
   variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   minimal?: boolean;
+  className?: string;
 }
 
 const LanguageSwitcher = ({ 
   variant = 'outline', 
   size = 'default',
-  minimal = false
+  minimal = false,
+  className = ''
 }: LanguageSwitcherProps) => {
   const { language, setLanguage, t } = useLanguage();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant={variant} size={size} className="gap-2">
+        <Button variant={variant} size={size} className={`gap-2 ${className}`}>
           <Globe className="h-4 w-4" />
           {!minimal && (
             <span>{t(`language.${language}`)}</span>
