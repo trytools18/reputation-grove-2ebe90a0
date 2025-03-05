@@ -6,14 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye } from "lucide-react";
 import TemplateUseDialog from "@/components/TemplateUseDialog";
+import TemplatePreviewDialog from "@/components/TemplatePreviewDialog";
 
 const Templates = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<{ id: string; name: string; category?: string } | null>(null);
   const [showUseDialog, setShowUseDialog] = useState(false);
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<{ id: string; name: string } | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -49,9 +52,19 @@ const Templates = () => {
     setShowUseDialog(true);
   };
 
+  const handlePreviewTemplate = (template: { id: string; name: string }) => {
+    setPreviewTemplate(template);
+    setShowPreviewDialog(true);
+  };
+
   const handleCloseDialog = () => {
     setShowUseDialog(false);
     setSelectedTemplate(null);
+  };
+
+  const handleClosePreviewDialog = () => {
+    setShowPreviewDialog(false);
+    setPreviewTemplate(null);
   };
 
   if (isLoading) {
@@ -109,17 +122,30 @@ const Templates = () => {
                   <p>A pre-configured template with questions focused on {template.category.toLowerCase()} feedback.</p>
                 </div>
               </CardContent>
-              <CardFooter>
-                <Button 
-                  className="w-full" 
-                  onClick={() => handleUseTemplate({ 
-                    id: template.id, 
-                    name: template.name,
-                    category: template.category 
-                  })}
-                >
-                  Use Template
-                </Button>
+              <CardFooter className="flex flex-col space-y-2">
+                <div className="flex w-full space-x-2">
+                  <Button 
+                    className="flex-1"
+                    variant="outline"
+                    onClick={() => handlePreviewTemplate({ 
+                      id: template.id, 
+                      name: template.name
+                    })}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Preview
+                  </Button>
+                  <Button 
+                    className="flex-1" 
+                    onClick={() => handleUseTemplate({ 
+                      id: template.id, 
+                      name: template.name,
+                      category: template.category 
+                    })}
+                  >
+                    Use Template
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           ))
@@ -130,6 +156,13 @@ const Templates = () => {
         isOpen={showUseDialog} 
         onClose={handleCloseDialog} 
         template={selectedTemplate} 
+      />
+
+      <TemplatePreviewDialog
+        isOpen={showPreviewDialog}
+        onClose={handleClosePreviewDialog}
+        templateId={previewTemplate?.id || null}
+        templateName={previewTemplate?.name || null}
       />
     </div>
   );
