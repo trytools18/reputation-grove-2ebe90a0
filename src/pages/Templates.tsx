@@ -307,24 +307,27 @@ const Templates = () => {
       if (selectedTemplate.questions && selectedTemplate.questions.length > 0) {
         // Map the template question types to valid form question types
         // This assumes 'questions' table expects types as 'rating', 'text', or 'multiple_choice'
-        const questionsToInsert = selectedTemplate.questions.map((question, index) => {
-          // Map template question type to database question type
-          let formattedType = question.type;
-          
-          // Convert to the expected database type format
-          if (question.type === 'multiplechoice') {
-            formattedType = 'multiple_choice';
-          }
-          // Ensure 'rating' stays as 'rating' and 'text' stays as 'text'
-          
-          return {
-            form_id: formData.id,
-            text: question.text,
-            type: formattedType,
-            options: question.options,
-            order: index
-          };
-        });
+       const questionsToInsert = selectedTemplate.questions.map((question, index) => {
+        let formattedType = question.type;
+  
+        // Specifically handle different type variations
+        if (question.type === 'multiplechoice') {
+          formattedType = 'multiple-choice';
+        }
+        
+        // Ensure other types match exactly what the database expects
+        if (formattedType === 'rating') {
+          formattedType = 'rating';
+        }
+        
+        return {
+          form_id: formData.id,
+          text: question.text,
+          type: formattedType,
+          options: question.options,
+          order: index
+        };
+      });
         
         console.log("Questions to insert:", questionsToInsert);
         
