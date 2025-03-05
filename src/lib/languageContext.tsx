@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'en' | 'el';
@@ -113,7 +112,6 @@ export const translations = {
     'survey.preview': 'Preview',
     'survey.saving': 'Saving...',
     'survey.saveSurvey': 'Save Survey',
-    'survey.addQuestion': 'Add Question',
     'survey.noQuestions': 'No questions added yet',
     'survey.addFirst': 'Add your first question',
     'survey.surveyInfo': 'Survey Information',
@@ -135,7 +133,6 @@ export const translations = {
     'survey.createCustomSurvey': 'Create Custom Survey',
     'survey.shareSurvey': 'Share Survey',
     'survey.customerSatisfaction': 'Customer Satisfaction Survey',
-    'survey.addQuestion': 'Add question',
     'survey.designCustomize': 'Design and customize your feedback survey',
 
     // Template Page
@@ -359,8 +356,8 @@ export const translations = {
     'survey.createCustomSurvey': 'Δημιουργία Προσαρμοσμένης Έρευνας',
     'survey.shareSurvey': 'Κοινοποίηση Έρευνας',
     'survey.customerSatisfaction': 'Έρευνα Ικανοποίησης Πελατών',
-    'survey.addQuestion': 'Προσθήκη ερώτησης',
     'survey.designCustomize': 'Σχεδιάστε και προσαρμόστε την έρευνα σχολίων σας',
+    'survey.addQuestion': 'Προσθήκη ερώτησης',
 
     // Template Page
     'template.title': 'Πρότυπα Ερευνών',
@@ -418,7 +415,7 @@ export const translations = {
     'surveyResults.responses': 'Απαντήσεις',
     'surveyResults.noResponses': 'Δεν υπάρχουν απαντήσεις ακόμα',
     'surveyResults.waitingForResponses': 'Αναμονή για την πρώτη σας απάντηση',
-    'surveyResults.shareToGetResponses': 'Κοινοποιήστε την έρευνά σας για να αρχίσετε να συλλέγετε απαντήσεις',
+    'surveyResults.shareToGetResponses': 'Κοινοποίηστε την έρευνά σας για να αρχίσετε να συλλέγετε απαντήσεις',
     'surveyResults.individualResponses': 'Μεμονωμένες Απαντήσεις',
     'surveyResults.viewAllResponses': 'Προβολή όλων των απαντήσεων',
 
