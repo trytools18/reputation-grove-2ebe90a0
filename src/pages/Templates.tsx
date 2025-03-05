@@ -6,14 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye } from "lucide-react";
 import TemplateUseDialog from "@/components/TemplateUseDialog";
+import TemplatePreviewDialog from "@/components/TemplatePreviewDialog";
 
 const Templates = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<{ id: string; name: string; category?: string } | null>(null);
   const [showUseDialog, setShowUseDialog] = useState(false);
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+  const [previewTemplateId, setPreviewTemplateId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -49,9 +52,19 @@ const Templates = () => {
     setShowUseDialog(true);
   };
 
+  const handlePreviewTemplate = (templateId: string) => {
+    setPreviewTemplateId(templateId);
+    setShowPreviewDialog(true);
+  };
+
   const handleCloseDialog = () => {
     setShowUseDialog(false);
     setSelectedTemplate(null);
+  };
+
+  const handleClosePreviewDialog = () => {
+    setShowPreviewDialog(false);
+    setPreviewTemplateId(null);
   };
 
   if (isLoading) {
@@ -109,9 +122,17 @@ const Templates = () => {
                   <p>A pre-configured template with questions focused on {template.category.toLowerCase()} feedback.</p>
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex justify-between gap-2">
                 <Button 
-                  className="w-full" 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => handlePreviewTemplate(template.id)}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Preview
+                </Button>
+                <Button 
+                  className="flex-1" 
                   onClick={() => handleUseTemplate({ 
                     id: template.id, 
                     name: template.name,
@@ -130,6 +151,12 @@ const Templates = () => {
         isOpen={showUseDialog} 
         onClose={handleCloseDialog} 
         template={selectedTemplate} 
+      />
+      
+      <TemplatePreviewDialog
+        isOpen={showPreviewDialog}
+        onClose={handleClosePreviewDialog}
+        templateId={previewTemplateId}
       />
     </div>
   );
