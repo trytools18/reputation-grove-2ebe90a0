@@ -80,7 +80,7 @@ const SurveyResults = () => {
       
       setSubmissions(submissionsData || []);
       
-      // 4. Calculate analytics
+      // 4. Calculate analytics for this specific survey
       if (submissionsData && submissionsData.length > 0) {
         processAnalytics(questionsData || [], submissionsData);
       }
@@ -101,11 +101,11 @@ const SurveyResults = () => {
   const processAnalytics = (questions: any[], submissions: any[]) => {
     const totalResponses = submissions.length;
     
-    // Calculate average rating from submissions
+    // Calculate average rating for this specific survey
     const sum = submissions.reduce((acc, submission) => acc + (submission.average_rating || 0), 0);
     const averageRating = totalResponses > 0 ? sum / totalResponses : 0;
     
-    // Process each question's responses
+    // Process each question's responses for this survey
     const questionStats: Record<string, any> = {};
     
     questions.forEach(question => {
@@ -170,7 +170,7 @@ const SurveyResults = () => {
         };
         
       } else if (question.type === QUESTION_TYPES.TEXT) {
-        // For text responses, just count how many answered
+        // For text responses, list all answers
         const textResponses = submissions
           .filter(s => s.answers[question.id] && s.answers[question.id].trim() !== '')
           .map(s => ({
@@ -201,6 +201,61 @@ const SurveyResults = () => {
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
+  };
+
+  const exportSurveyData = () => {
+    try {
+      // Prepare the data to export
+      const exportData = {
+        surveyInfo: {
+          name: survey?.restaurant_name || "Survey",
+          createdAt: survey?.created_at || new Date().toISOString(),
+          totalResponses: submissions.length
+        },
+        questions: questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          type: q.type,
+          options: q.options
+        })),
+        responses: submissions.map(s => ({
+          id: s.id,
+          submittedAt: s.created_at,
+          answers: s.answers,
+          averageRating: s.average_rating
+        })),
+        analytics: analytics
+      };
+      
+      // Convert to JSON string
+      const jsonString = JSON.stringify(exportData, null, 2);
+      
+      // Create a blob and download link
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      link.href = url;
+      link.download = `${survey?.restaurant_name || 'survey'}-results.json`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Export successful",
+        description: "Survey data has been downloaded as JSON",
+      });
+    } catch (error: any) {
+      console.error("Error exporting data:", error);
+      toast({
+        title: "Export failed",
+        description: error.message || "Could not export survey data",
+        variant: "destructive"
+      });
+    }
   };
 
   if (isLoading) {
@@ -255,7 +310,7 @@ const SurveyResults = () => {
           </Button>
           <Button 
             variant="outline" 
-            onClick={() => {/* Implement export */}}
+            onClick={exportSurveyData}
           >
             <Download className="h-4 w-4 mr-2" />
             Export Data
@@ -319,32 +374,80 @@ const SurveyResults = () => {
               </CardContent>
             </Card>
           ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Rating Distribution</CardTitle>
-                <CardDescription>How respondents rated their experience</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={questions
-                      .filter(q => q.type === QUESTION_TYPES.RATING)
-                      .map(q => analytics.questionStats[q.id])
-                      .filter(Boolean)
-                      .flatMap(stat => stat.distribution || [])
-                    }
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="value" name="Number of Ratings" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Rating questions summary */}
+              {questions
+                .filter(q => q.type === QUESTION_TYPES.RATING)
+                .map((question, index) => {
+                  const stats = analytics.questionStats[question.id];
+                  if (!stats) return null;
+                  
+                  return (
+                    <Card key={question.id}>
+                      <CardHeader>
+                        <CardTitle className="text-base">{question.text}</CardTitle>
+                        <CardDescription>Average rating: {stats.average.toFixed(1)}/5</CardDescription>
+                      </CardHeader>
+                      <CardContent className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={stats.distribution}
+                            margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="value" name="Responses" fill="#8884d8" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              }
+              
+              {/* Multiple choice questions summary */}
+              {questions
+                .filter(q => q.type === QUESTION_TYPES.MULTIPLE_CHOICE)
+                .map((question, index) => {
+                  const stats = analytics.questionStats[question.id];
+                  if (!stats) return null;
+                  
+                  return (
+                    <Card key={question.id}>
+                      <CardHeader>
+                        <CardTitle className="text-base">{question.text}</CardTitle>
+                        <CardDescription>{stats.totalAnswered} responses</CardDescription>
+                      </CardHeader>
+                      <CardContent className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={stats.distribution}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              outerRadius={80}
+                              fill="#8884d8"
+                              dataKey="value"
+                              label={({ name, percent }) => 
+                                percent > 0.05 ? `${name}: ${(percent * 100).toFixed(0)}%` : ''
+                              }
+                            >
+                              {stats.distribution.map((_: any, index: number) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(value) => [`${value} responses`, 'Count']} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              }
+            </div>
           )}
         </TabsContent>
 
@@ -426,7 +529,7 @@ const SurveyResults = () => {
                         {analytics.questionStats[question.id].totalAnswered} text responses received
                       </div>
                       
-                      {analytics.questionStats[question.id].responses.slice(0, 5).map((resp: any, i: number) => (
+                      {analytics.questionStats[question.id].responses.map((resp: any, i: number) => (
                         <div key={i} className="p-3 bg-muted rounded-md">
                           <p className="mb-1">{resp.response}</p>
                           <p className="text-xs text-muted-foreground">
@@ -435,9 +538,9 @@ const SurveyResults = () => {
                         </div>
                       ))}
                       
-                      {analytics.questionStats[question.id].responses.length > 5 && (
-                        <div className="text-center text-sm text-primary">
-                          + {analytics.questionStats[question.id].responses.length - 5} more responses
+                      {analytics.questionStats[question.id].responses.length === 0 && (
+                        <div className="text-center text-muted-foreground py-4">
+                          No text responses received yet
                         </div>
                       )}
                     </div>

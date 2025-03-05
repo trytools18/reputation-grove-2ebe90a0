@@ -104,4 +104,53 @@ export const convertTemplateToSurvey = async (templateId: string, businessName: 
   }
 };
 
+// Export survey data as JSON file
+export const exportSurveyData = (survey: any, questions: any[], submissions: any[], analytics: any) => {
+  try {
+    // Prepare the data to export
+    const exportData = {
+      surveyInfo: {
+        name: survey?.restaurant_name || "Survey",
+        createdAt: survey?.created_at || new Date().toISOString(),
+        totalResponses: submissions.length
+      },
+      questions: questions.map(q => ({
+        id: q.id,
+        text: q.text,
+        type: q.type,
+        options: q.options
+      })),
+      responses: submissions.map(s => ({
+        id: s.id,
+        submittedAt: s.created_at,
+        answers: s.answers,
+        averageRating: s.average_rating
+      })),
+      analytics: analytics
+    };
+    
+    // Convert to JSON string
+    const jsonString = JSON.stringify(exportData, null, 2);
+    
+    // Create a blob and download link
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    link.href = url;
+    link.download = `${survey?.restaurant_name || 'survey'}-results.json`;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    URL.revokeObjectURL(url);
+    
+    return true;
+  } catch (error) {
+    console.error("Error exporting data:", error);
+    return false;
+  }
+};
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
