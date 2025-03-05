@@ -3,51 +3,53 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Chip } from "./ui/chip"
 import { Check } from "lucide-react"
+import { useLanguage } from '@/lib/languageContext'
 
 const Pricing = () => {
   const [annual, setAnnual] = useState(true)
+  const { t } = useLanguage()
 
   const plans = [
     {
-      name: "Free",
-      description: "Basic tools for small businesses just getting started.",
+      name: t('pricing.free'),
+      description: t('pricing.freeDesc'),
       monthly: 0,
       annual: 0,
       features: [
-        "Basic survey creation",
-        "Up to 100 responses per month",
-        "Basic analytics dashboard",
-        "Email support"
+        t('pricing.basicSurvey'),
+        t('pricing.responses100'),
+        t('pricing.basicAnalytics'),
+        t('pricing.emailSupport')
       ]
     },
     {
-      name: "Pro",
-      description: "Advanced tools for growing businesses.",
+      name: t('pricing.pro'),
+      description: t('pricing.proDesc'),
       monthly: 29,
       annual: 24,
       features: [
-        "Unlimited survey creation",
-        "Up to 1,000 responses per month",
-        "Google Maps review redirection",
-        "Advanced analytics dashboard",
-        "Custom QR codes and short links",
-        "Priority email support"
+        t('pricing.unlimitedSurveys'),
+        t('pricing.responses1000'),
+        t('pricing.googleMapsRedirect'),
+        t('pricing.advancedAnalytics'),
+        t('pricing.customQR'),
+        t('pricing.priorityEmail')
       ],
       popular: true
     },
     {
-      name: "Premium",
-      description: "Complete solution for established businesses.",
+      name: t('pricing.premium'),
+      description: t('pricing.premiumDesc'),
       monthly: 79,
       annual: 69,
       features: [
-        "Everything in Pro",
-        "Unlimited responses",
-        "Competitive benchmarking",
-        "Industry and city averages",
-        "Custom branding",
-        "API access",
-        "Dedicated account manager"
+        t('pricing.everythingPro'),
+        t('pricing.unlimitedResponses'),
+        t('pricing.benchmarking'),
+        t('pricing.industryAverages'),
+        t('pricing.customBranding'),
+        t('pricing.apiAccess'),
+        t('pricing.dedicatedManager')
       ]
     }
   ]
@@ -56,14 +58,14 @@ const Pricing = () => {
     <section id="pricing" className="py-24">
       <div className="container mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto mb-12 reveal-on-scroll">
-          <Chip className="mb-4">Pricing</Chip>
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Simple, Transparent Pricing</h2>
+          <Chip className="mb-4">{t('pricing.title')}</Chip>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('pricing.heading')}</h2>
           <p className="text-foreground/80 mb-8">
-            Choose the plan that best fits your business needs. No hidden fees or complicated pricing structures.
+            {t('pricing.description')}
           </p>
 
           <div className="flex items-center justify-center space-x-3">
-            <span className={`text-sm ${!annual ? 'text-foreground' : 'text-foreground/60'}`}>Monthly</span>
+            <span className={`text-sm ${!annual ? 'text-foreground' : 'text-foreground/60'}`}>{t('pricing.monthly')}</span>
             <button 
               onClick={() => setAnnual(!annual)} 
               className={`relative w-12 h-6 rounded-full transition-colors ${annual ? 'bg-primary' : 'bg-gray-300'}`}
@@ -75,7 +77,7 @@ const Pricing = () => {
               />
             </button>
             <span className={`text-sm ${annual ? 'text-foreground' : 'text-foreground/60'}`}>
-              Annual <span className="text-green-600 font-medium">Save 15%</span>
+              {t('pricing.annual')} <span className="text-green-600 font-medium">{t('pricing.save')}</span>
             </span>
           </div>
         </div>
@@ -93,7 +95,7 @@ const Pricing = () => {
             >
               {plan.popular && (
                 <div className="bg-primary text-white text-xs font-medium py-1 text-center">
-                  Most Popular
+                  {t('pricing.mostPopular')}
                 </div>
               )}
               <div className="p-6">
@@ -102,11 +104,11 @@ const Pricing = () => {
                 <div className="mb-6">
                   <p className="text-4xl font-bold">
                     ${annual ? plan.annual : plan.monthly}
-                    <span className="text-sm font-normal text-foreground/70">/mo</span>
+                    <span className="text-sm font-normal text-foreground/70">/{t('pricing.mo')}</span>
                   </p>
                   {annual && plan.monthly > 0 && (
                     <p className="text-sm text-green-600">
-                      Save ${(plan.monthly - plan.annual) * 12}/year
+                      {t('pricing.saveYear', { amount: (plan.monthly - plan.annual) * 12 })}
                     </p>
                   )}
                 </div>
@@ -115,7 +117,7 @@ const Pricing = () => {
                     plan.popular ? '' : 'bg-foreground/90 hover:bg-foreground'
                   }`}
                 >
-                  Get started
+                  {t('pricing.getStarted')}
                 </Button>
                 <ul className="space-y-3">
                   {plan.features.map((feature, i) => (
@@ -132,8 +134,7 @@ const Pricing = () => {
 
         <div className="mt-16 text-center max-w-xl mx-auto pt-4 reveal-on-scroll">
           <p className="text-foreground/80 text-sm">
-            All plans include access to our customer support team, regular product updates, 
-            and our knowledge base. Need a custom solution? <a href="#" className="text-primary font-medium">Contact our sales team</a>.
+            {t('pricing.allPlans')} <a href="#" className="text-primary font-medium">{t('pricing.contactSales')}</a>.
           </p>
         </div>
       </div>
