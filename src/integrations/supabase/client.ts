@@ -28,4 +28,57 @@ export const DB_TO_FRONTEND_TYPE = {
   [QUESTION_TYPES.TEXT]: "text"
 };
 
+// Create a function to convert template questions to survey questions
+export const convertTemplateToSurvey = async (templateId: string, restaurantName: string, googleMapsUrl: string, userId: string) => {
+  try {
+    // 1. Create the form
+    const { data: formData, error: formError } = await supabase
+      .from('forms')
+      .insert({
+        restaurant_name: restaurantName,
+        google_maps_url: googleMapsUrl,
+        minimum_positive_rating: 4,
+        user_id: userId
+      })
+      .select()
+      .single();
+      
+    if (formError) throw formError;
+    
+    // 2. Get template questions
+    const { data: templateQuestions, error: questionsError } = await supabase
+      .from('template_questions')
+      .select('*')
+      .eq('template_id', templateId)
+      .order('order_num', { ascending: true });
+      
+    if (questionsError) throw questionsError;
+    
+    if (!templateQuestions || templateQuestions.length === 0) {
+      return { id: formData.id, error: "No questions found in template" };
+    }
+    
+    // 3. Convert template questions to form questions
+    const questionsToInsert = templateQuestions.map((q, index) => ({
+      form_id: formData.id,
+      text: q.text,
+      type: q.type,
+      options: q.options,
+      order: index
+    }));
+    
+    // 4. Insert questions
+    const { error: insertError } = await supabase
+      .from('questions')
+      .insert(questionsToInsert);
+      
+    if (insertError) throw insertError;
+    
+    return { id: formData.id, error: null };
+  } catch (error: any) {
+    console.error("Error converting template to survey:", error);
+    return { id: null, error: error.message || "Failed to create survey from template" };
+  }
+};
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);

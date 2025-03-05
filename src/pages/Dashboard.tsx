@@ -4,19 +4,23 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Pie, PieChart, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
-import { PlusCircle, BarChart as BarChartIcon, PieChart as PieChartIcon, ArrowUpRight } from "lucide-react";
+import { PlusCircle, BarChart as BarChartIcon, PieChart as PieChartIcon, ArrowUpRight, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [surveys, setSurveys] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [surveyToDelete, setSurveyToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { user } = useSession();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -64,6 +68,62 @@ const Dashboard = () => {
     
     fetchData();
   }, [user, toast]);
+
+  const handleDeleteSurvey = (surveyId: string) => {
+    setSurveyToDelete(surveyId);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteSurvey = async () => {
+    if (!surveyToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      // Delete all questions related to the survey
+      const { error: questionsError } = await supabase
+        .from('questions')
+        .delete()
+        .eq('form_id', surveyToDelete);
+        
+      if (questionsError) throw questionsError;
+      
+      // Delete all submissions related to the survey
+      const { error: submissionsError } = await supabase
+        .from('submissions')
+        .delete()
+        .eq('form_id', surveyToDelete);
+        
+      if (submissionsError) throw submissionsError;
+      
+      // Delete the survey itself
+      const { error: surveyError } = await supabase
+        .from('forms')
+        .delete()
+        .eq('id', surveyToDelete);
+        
+      if (surveyError) throw surveyError;
+      
+      // Update the local state to remove the deleted survey
+      setSurveys(surveys.filter(survey => survey.id !== surveyToDelete));
+      setSubmissions(submissions.filter(sub => sub.form_id !== surveyToDelete));
+      
+      toast({
+        title: "Survey deleted",
+        description: "Survey and all related data have been deleted successfully",
+      });
+    } catch (error: any) {
+      console.error("Error deleting survey:", error);
+      toast({
+        title: "Error deleting survey",
+        description: error.message || "Could not delete the survey",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+      setSurveyToDelete(null);
+    }
+  };
 
   // Prepare chart data
   const ratingDistribution = [
@@ -319,9 +379,20 @@ const Dashboard = () => {
                       </div>
                     </CardContent>
                     <CardFooter className="flex justify-between">
-                      <Button variant="outline" size="sm" onClick={() => navigate(`/survey/${survey.id}`)}>
-                        View Form
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => navigate(`/survey/${survey.id}`)}>
+                          View Form
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          onClick={() => handleDeleteSurvey(survey.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
                       <Button variant="default" size="sm" onClick={() => navigate(`/survey/${survey.id}/share`)}>
                         Share Survey
                       </Button>
@@ -411,6 +482,35 @@ const Dashboard = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this survey?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the survey and all of its data, 
+              including questions and submissions.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteSurvey}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Survey"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
