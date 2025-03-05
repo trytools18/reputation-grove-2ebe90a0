@@ -42,11 +42,11 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
           if (profile && !profile.onboarding_completed) {
             navigate("/onboarding");
           } else {
-            navigate("/");
+            navigate("/dashboard");
           }
         } catch (error) {
           console.error("Error checking profile:", error);
-          navigate("/");
+          navigate("/dashboard");
         }
       }
     };

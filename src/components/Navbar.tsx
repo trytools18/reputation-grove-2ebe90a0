@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Menu, X, LogOut } from "lucide-react"
@@ -50,6 +49,10 @@ const Navbar = () => {
     navigate("/login")
   }
 
+  const handleDashboard = () => {
+    navigate("/dashboard")
+  }
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -78,7 +81,7 @@ const Navbar = () => {
             {t('nav.about')}
           </a>
           {user && (
-            <Link to="/create-survey" className="text-foreground/80 hover:text-foreground transition-colors">
+            <Link to="/dashboard" className="text-foreground/80 hover:text-foreground transition-colors">
               {t('nav.dashboard')}
             </Link>
           )}
@@ -95,6 +98,9 @@ const Navbar = () => {
               <Button variant="outline" className="rounded-full px-5 flex items-center gap-2" onClick={handleLogout}>
                 <LogOut size={16} />
                 {t('common.logout')}
+              </Button>
+              <Button className="rounded-full px-5" onClick={handleDashboard}>
+                {t('nav.dashboard')}
               </Button>
             </div>
           ) : (
@@ -149,7 +155,7 @@ const Navbar = () => {
             </a>
             {user && (
               <Link 
-                to="/create-survey" 
+                to="/dashboard" 
                 className="py-2 text-foreground/80 hover:text-foreground transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
