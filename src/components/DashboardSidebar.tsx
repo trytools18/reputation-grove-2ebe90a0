@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { signOut, useSession, useUserProfile } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { BarChart, ChevronLeft, ChevronRight, Home, LogOut, PlusCircle, Settings, User } from "lucide-react";
+import { BarChart, ChevronLeft, ChevronRight, Globe, Home, LogOut, PlusCircle, Settings, User } from "lucide-react";
+import { useLanguage } from "@/lib/languageContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const DashboardSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -14,6 +16,7 @@ const DashboardSidebar = () => {
   const { toast } = useToast();
   const { user } = useSession();
   const { profile } = useUserProfile();
+  const { t } = useLanguage();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -37,10 +40,10 @@ const DashboardSidebar = () => {
   };
 
   const navItems = [
-    { icon: Home, label: "Dashboard", path: "/dashboard" },
-    { icon: BarChart, label: "Analytics", path: "/dashboard?tab=analytics" },
-    { icon: PlusCircle, label: "Create Survey", path: "/create-survey" },
-    { icon: User, label: "Account", path: "/account-settings" },
+    { icon: Home, label: t('nav.dashboard'), path: "/dashboard" },
+    { icon: BarChart, label: t('nav.analytics'), path: "/dashboard?tab=analytics" },
+    { icon: PlusCircle, label: t('nav.createSurvey'), path: "/create-survey" },
+    { icon: User, label: t('nav.account'), path: "/account-settings" },
   ];
 
   return (
@@ -56,7 +59,7 @@ const DashboardSidebar = () => {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mr-2">
               <span className="text-primary-foreground font-semibold text-lg">R</span>
             </div>
-            <span className="font-semibold text-xl">Repute</span>
+            <span className="font-semibold text-xl">{t('app.name')}</span>
           </Link>
         )}
         {collapsed && (
@@ -100,6 +103,16 @@ const DashboardSidebar = () => {
             <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
           </div>
         )}
+        {!collapsed && (
+          <div className="mb-3">
+            <LanguageSwitcher variant="ghost" size="sm" />
+          </div>
+        )}
+        {collapsed && (
+          <div className="mb-3 flex justify-center">
+            <LanguageSwitcher variant="ghost" size="icon" minimal={true} />
+          </div>
+        )}
         <Button
           variant="ghost"
           className={cn(
@@ -109,7 +122,7 @@ const DashboardSidebar = () => {
           onClick={handleLogout}
         >
           <LogOut className="h-5 w-5" />
-          {!collapsed && <span className="ml-2">Logout</span>}
+          {!collapsed && <span className="ml-2">{t('common.logout')}</span>}
         </Button>
       </div>
     </div>

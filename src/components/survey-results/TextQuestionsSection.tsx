@@ -1,5 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLanguage } from "@/lib/languageContext";
 
 type TextQuestionsSectionProps = {
   questions: any[];
@@ -8,13 +9,15 @@ type TextQuestionsSectionProps = {
 };
 
 const TextQuestionsSection = ({ questions, analytics, formatDate }: TextQuestionsSectionProps) => {
+  const { t } = useLanguage();
+  
   if (questions.length === 0) return null;
 
   return (
     <Card className="shadow-sm border-slate-200">
       <CardHeader className="bg-slate-50 rounded-t-lg border-b">
-        <CardTitle>Text Questions</CardTitle>
-        <CardDescription>Free-form text responses</CardDescription>
+        <CardTitle>{t('survey.textResponse')}</CardTitle>
+        <CardDescription>{t('surveyView.shareFeedback')}</CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
         <div className="space-y-8">

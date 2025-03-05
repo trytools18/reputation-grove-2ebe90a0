@@ -16,6 +16,7 @@ import { useSession } from "./lib/auth";
 import { Toaster } from "@/components/ui/toaster";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
+import { LanguageProvider } from "./lib/languageContext";
 
 // Create a loading component for suspense fallback
 const LoadingFallback = () => (
@@ -58,63 +59,65 @@ const App = () => {
   }
 
   return (
-    <Router>
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Auth />} />
-          <Route path="/signup" element={<Auth isSignUp />} />
-          <Route path="/survey/:id" element={<SurveyView />} />
-          
-          {/* Protected dashboard routes */}
-          <Route path="/dashboard" element={
-            <DashboardRoute>
-              <Dashboard />
-            </DashboardRoute>
-          } />
-          <Route path="/account-settings" element={
-            <DashboardRoute>
-              <AccountSettings />
-            </DashboardRoute>
-          } />
-          <Route path="/onboarding" element={
-            <ProtectedRoute>
-              <Onboarding />
-            </ProtectedRoute>
-          } />
-          <Route path="/create-survey" element={
-            <DashboardRoute showBackButton={true}>
-              <SurveyCreator />
-            </DashboardRoute>
-          } />
-          <Route path="/edit-survey" element={
-            <DashboardRoute showBackButton={true}>
-              <SurveyCreator />
-            </DashboardRoute>
-          } />
-          <Route path="/survey/:id/share" element={
-            <DashboardRoute showBackButton={true}>
-              <SurveyShare />
-            </DashboardRoute>
-          } />
-          <Route path="/survey/:id/results" element={
-            <DashboardRoute showBackButton={true}>
-              <SurveyResults />
-            </DashboardRoute>
-          } />
-          <Route path="/templates" element={
-            <DashboardRoute>
-              <Templates />
-            </DashboardRoute>
-          } />
-          
-          {/* Fallback route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-      <Toaster />
-    </Router>
+    <LanguageProvider>
+      <Router>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Auth />} />
+            <Route path="/signup" element={<Auth isSignUp />} />
+            <Route path="/survey/:id" element={<SurveyView />} />
+            
+            {/* Protected dashboard routes */}
+            <Route path="/dashboard" element={
+              <DashboardRoute>
+                <Dashboard />
+              </DashboardRoute>
+            } />
+            <Route path="/account-settings" element={
+              <DashboardRoute>
+                <AccountSettings />
+              </DashboardRoute>
+            } />
+            <Route path="/onboarding" element={
+              <ProtectedRoute>
+                <Onboarding />
+              </ProtectedRoute>
+            } />
+            <Route path="/create-survey" element={
+              <DashboardRoute showBackButton={true}>
+                <SurveyCreator />
+              </DashboardRoute>
+            } />
+            <Route path="/edit-survey" element={
+              <DashboardRoute showBackButton={true}>
+                <SurveyCreator />
+              </DashboardRoute>
+            } />
+            <Route path="/survey/:id/share" element={
+              <DashboardRoute showBackButton={true}>
+                <SurveyShare />
+              </DashboardRoute>
+            } />
+            <Route path="/survey/:id/results" element={
+              <DashboardRoute showBackButton={true}>
+                <SurveyResults />
+              </DashboardRoute>
+            } />
+            <Route path="/templates" element={
+              <DashboardRoute>
+                <Templates />
+              </DashboardRoute>
+            } />
+            
+            {/* Fallback route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+        <Toaster />
+      </Router>
+    </LanguageProvider>
   );
 };
 

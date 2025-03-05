@@ -11,7 +11,9 @@ import { supabase, QUESTION_TYPES, FRONTEND_TO_DB_TYPE, DB_TO_FRONTEND_TYPE } fr
 import { useToast } from "@/components/ui/use-toast"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useSession } from "@/lib/auth"
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd'
+import { useLanguage } from "@/lib/languageContext"
+import LanguageSwitcher from "./LanguageSwitcher"
 
 const QUESTION_TYPE_UI = [
   { id: "rating", label: "Rating", icon: <ListOrdered className="h-4 w-4" /> },
@@ -29,6 +31,8 @@ interface Question {
 }
 
 const SurveyCreator = () => {
+  const { t } = useLanguage();
+  
   const [surveyTitle, setSurveyTitle] = useState("Customer Satisfaction Survey")
   const [surveyDescription, setSurveyDescription] = useState("Please share your feedback about your recent experience at our restaurant.")
   const [questions, setQuestions] = useState<Question[]>([
@@ -185,7 +189,7 @@ const SurveyCreator = () => {
   const saveSurvey = async () => {
     if (!user) {
       toast({
-        title: "Authentication required",
+        title: t('common.error'),
         description: "Please sign in to save your survey",
         variant: "destructive"
       })
@@ -194,8 +198,8 @@ const SurveyCreator = () => {
 
     if (!surveyTitle.trim()) {
       toast({
-        title: "Survey title required",
-        description: "Please provide a title for your survey",
+        title: t('common.error'),
+        description: t('survey.surveyTitle') + " " + t('common.required'),
         variant: "destructive"
       })
       return
@@ -204,8 +208,8 @@ const SurveyCreator = () => {
     if (!googleMapsUrl.trim()) {
       setShowGoogleMapsError(true);
       toast({
-        title: "Google Maps URL required",
-        description: "Please provide a Google Maps URL for redirection",
+        title: t('survey.googleUrlRequired'),
+        description: t('survey.googleUrlRequired'),
         variant: "destructive"
       });
       setActiveTab("settings");
@@ -314,9 +318,12 @@ const SurveyCreator = () => {
                 onClick={() => navigate("/dashboard")}
               >
                 <ArrowLeft className="h-4 w-4 mr-1" />
-                Back
+                {t('common.back')}
               </Button>
-              <h2 className="text-2xl font-bold">{isEditing ? "Edit Survey" : "Create Survey"}</h2>
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-bold">{isEditing ? t('survey.edit') : t('survey.create')}</h2>
+                <LanguageSwitcher variant="ghost" size="sm" />
+              </div>
               <p className="text-foreground/70">
                 Design and customize your feedback survey
               </p>
@@ -326,15 +333,15 @@ const SurveyCreator = () => {
             <TabsList>
               <TabsTrigger value="design" className="flex items-center gap-1">
                 <Edit2 className="h-4 w-4" />
-                <span>Design</span>
+                <span>{t('survey.design')}</span>
               </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-1">
                 <Move className="h-4 w-4" />
-                <span>Settings</span>
+                <span>{t('survey.settings')}</span>
               </TabsTrigger>
               <TabsTrigger value="preview" className="flex items-center gap-1">
                 <Laptop className="h-4 w-4" />
-                <span>Preview</span>
+                <span>{t('survey.preview')}</span>
               </TabsTrigger>
             </TabsList>
             <Button 
@@ -346,12 +353,12 @@ const SurveyCreator = () => {
               {isSaving ? (
                 <>
                   <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  <span>Saving...</span>
+                  <span>{t('survey.saving')}</span>
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4" />
-                  <span>Save Survey</span>
+                  <span>{t('survey.saveSurvey')}</span>
                 </>
               )}
             </Button>

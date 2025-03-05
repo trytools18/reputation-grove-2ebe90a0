@@ -6,6 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase, QUESTION_TYPES } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useLanguage } from "@/lib/languageContext";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { Globe } from "lucide-react";
 
 const SurveyView = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +24,7 @@ const SurveyView = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Effect to handle auto-redirect
   useEffect(() => {
@@ -64,7 +68,7 @@ const SurveyView = () => {
         }
         
         if (!formData) {
-          setError("Survey not found");
+          setError(t('surveyView.notFound'));
           setIsLoading(false);
           return;
         }
@@ -101,10 +105,10 @@ const SurveyView = () => {
         setAnswers(initialAnswers);
       } catch (error: any) {
         console.error("Error fetching survey:", error);
-        setError(error.message || "Could not load the survey");
+        setError(error.message || t('surveyView.notFound'));
         toast({
-          title: "Error loading survey",
-          description: error.message || "Could not load the survey",
+          title: t('common.error'),
+          description: error.message || t('surveyView.notFound'),
           variant: "destructive"
         });
       } finally {
@@ -113,7 +117,7 @@ const SurveyView = () => {
     };
     
     fetchSurveyData();
-  }, [id, toast]);
+  }, [id, toast, t]);
 
   const handleAnswerChange = (questionId: string, value: any) => {
     setAnswers(prev => ({
@@ -157,7 +161,7 @@ const SurveyView = () => {
       });
       
       if (!hasAnsweredSomething) {
-        throw new Error("Please answer at least one question");
+        throw new Error(t('surveyView.answerAtLeastOne'));
       }
       
       const ratingQuestions = questions.filter(q => q.type === QUESTION_TYPES.RATING);
@@ -185,8 +189,8 @@ const SurveyView = () => {
       }
       
       toast({
-        title: "Thank you for your feedback!",
-        description: "Your responses have been submitted successfully."
+        title: t('surveyView.thankYou'),
+        description: t('surveyView.thankYouDesc')
       });
       
       setSubmissionSuccess(true);
@@ -198,19 +202,19 @@ const SurveyView = () => {
         setShouldRedirect(true);
         
         toast({
-          title: "Redirecting to Google Maps",
-          description: "You'll be redirected to Google Maps to leave a review in a moment!"
+          title: t('surveyView.redirectingToGoogle'),
+          description: t('surveyView.redirectingToGoogle')
         });
       }
       
     } catch (error: any) {
       console.error("Error submitting survey:", error);
       toast({
-        title: "Error submitting survey",
-        description: error.message || "Could not submit your feedback",
+        title: t('surveyView.errorSubmitting'),
+        description: error.message || t('common.error'),
         variant: "destructive"
       });
-      setError(error.message || "Could not submit your feedback");
+      setError(error.message || t('common.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -229,11 +233,11 @@ const SurveyView = () => {
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-xl mx-auto">
           <CardHeader>
-            <CardTitle>Survey Not Found</CardTitle>
-            <CardDescription>The survey you're looking for does not exist or may have been deleted.</CardDescription>
+            <CardTitle>{t('surveyView.notFound')}</CardTitle>
+            <CardDescription>{t('surveyView.notFoundDesc')}</CardDescription>
           </CardHeader>
           <CardFooter>
-            <Button variant="outline" onClick={() => window.history.back()}>Go Back</Button>
+            <Button variant="outline" onClick={() => window.history.back()}>{t('surveyView.goBack')}</Button>
           </CardFooter>
         </Card>
       </div>
@@ -245,13 +249,13 @@ const SurveyView = () => {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Card>
           <CardHeader>
-            <CardTitle>Thank You!</CardTitle>
-            <CardDescription>Your feedback has been submitted successfully.</CardDescription>
+            <CardTitle>{t('surveyView.thankYou')}</CardTitle>
+            <CardDescription>{t('surveyView.thankYouDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {shouldRedirect && (
               <p className="text-center mb-4">
-                You will be redirected to Google Maps to leave a review momentarily...
+                {t('surveyView.redirectingToGoogle')}
               </p>
             )}
           </CardContent>
@@ -262,14 +266,17 @@ const SurveyView = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="flex justify-end mb-4">
+        <LanguageSwitcher />
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>{survey.restaurant_name}</CardTitle>
-          <CardDescription>Please share your feedback with us</CardDescription>
+          <CardDescription>{t('surveyView.shareFeedback')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {questions.length === 0 ? (
-            <p className="text-center text-muted-foreground">This survey has no questions yet.</p>
+            <p className="text-center text-muted-foreground">{t('surveyView.noQuestions')}</p>
           ) : (
             questions.map((question) => (
               <div key={question.id} className="border-b pb-4 last:border-0">
@@ -315,7 +322,7 @@ const SurveyView = () => {
                   <Textarea
                     className="w-full"
                     rows={4}
-                    placeholder="Enter your response here..."
+                    placeholder={t('surveyView.enterResponse')}
                     value={answers[question.id] || ''}
                     onChange={(e) => handleAnswerChange(question.id, e.target.value)}
                   />
@@ -336,10 +343,10 @@ const SurveyView = () => {
             {isSubmitting ? (
               <>
                 <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                Submitting...
+                {t('surveyView.submitting')}
               </>
             ) : (
-              "Submit Feedback"
+              t('surveyView.submitFeedback')
             )}
           </Button>
         </CardFooter>

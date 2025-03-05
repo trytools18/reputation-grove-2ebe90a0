@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { QUESTION_TYPES } from "@/integrations/supabase/client";
+import { useLanguage } from "@/lib/languageContext";
 
 type IndividualResponsesSectionProps = {
   submissions: any[];
@@ -13,6 +14,8 @@ const IndividualResponsesSection = ({
   questions, 
   formatDate 
 }: IndividualResponsesSectionProps) => {
+  const { t } = useLanguage();
+  
   if (submissions.length === 0) {
     return (
       <div className="text-center py-8">
