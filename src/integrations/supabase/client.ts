@@ -61,13 +61,16 @@ export const convertTemplateToSurvey = async (templateId: string, businessName: 
     // 3. Convert template questions to form questions
     // Ensure the question type matches the allowed types in the database constraint
     const questionsToInsert = templateQuestions.map((q, index) => {
-      // Validate and ensure the question type is one of the allowed types
+      // Validate and ensure the question type is primarily multiple-choice or rating
       let questionType = q.type;
       
-      // Check if the type is valid, if not default to 'text'
+      // Check if the type is valid, prioritizing multiple-choice and rating
       if (![QUESTION_TYPES.RATING, QUESTION_TYPES.MULTIPLE_CHOICE, QUESTION_TYPES.TEXT].includes(questionType)) {
-        console.warn(`Invalid question type "${questionType}" detected. Defaulting to "text".`);
-        questionType = QUESTION_TYPES.TEXT;
+        console.warn(`Invalid question type "${questionType}" detected. Defaulting to "multiple-choice".`);
+        // Default to multiple-choice if it has options, otherwise rating
+        questionType = q.options && q.options.length > 0 
+          ? QUESTION_TYPES.MULTIPLE_CHOICE 
+          : QUESTION_TYPES.RATING;
       }
       
       return {
