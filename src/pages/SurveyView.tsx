@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -202,8 +203,8 @@ const SurveyView = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary">div>
-      div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
@@ -212,14 +213,14 @@ const SurveyView = () => {
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-xl mx-auto">
           <CardHeader>
-            <CardTitle>Survey Not FoundCardTitle>
-            <CardDescription>The survey you're looking for does not exist or may have been deleted.CardDescription>
-          CardHeader>
+            <CardTitle>Survey Not Found</CardTitle>
+            <CardDescription>The survey you're looking for does not exist or may have been deleted.</CardDescription>
+          </CardHeader>
           <CardFooter>
-            <Button variant="outline" onClick={() => window.history.back()}>Go BackButton>
-          CardFooter>
-        Card>
-      div>
+            <Button variant="outline" onClick={() => window.history.back()}>Go Back</Button>
+          </CardFooter>
+        </Card>
+      </div>
     );
   }
 
@@ -228,13 +229,13 @@ const SurveyView = () => {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Card>
           <CardHeader>
-            <CardTitle>Thank You!CardTitle>
-            <CardDescription>Your feedback has been submitted successfully.CardDescription>
-          CardHeader>
+            <CardTitle>Thank You!</CardTitle>
+            <CardDescription>Your feedback has been submitted successfully.</CardDescription>
+          </CardHeader>
           <CardContent>
             <p className="text-center mb-4">
               {survey.google_maps_url ? "You'll be redirected to Google Maps to leave a review." : "We appreciate your time."}
-            p>
+            </p>
             {survey.google_maps_url && (
               <div className="flex justify-center">
                 <a 
@@ -244,12 +245,12 @@ const SurveyView = () => {
                   className="text-blue-500 hover:underline flex items-center"
                 >
                   Open Google Maps
-                a>
-              div>
+                </a>
+              </div>
             )}
-          CardContent>
-        Card>
-      div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -257,16 +258,16 @@ const SurveyView = () => {
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <Card>
         <CardHeader>
-          <CardTitle>{survey.restaurant_name}CardTitle>
-          <CardDescription>Please share your feedback with usCardDescription>
-        CardHeader>
+          <CardTitle>{survey.restaurant_name}</CardTitle>
+          <CardDescription>Please share your feedback with us</CardDescription>
+        </CardHeader>
         <CardContent className="space-y-6">
           {questions.length === 0 ? (
-            <p className="text-center text-muted-foreground">This survey has no questions yet.p>
+            <p className="text-center text-muted-foreground">This survey has no questions yet.</p>
           ) : (
             questions.map((question) => (
               <div key={question.id} className="border-b pb-4 last:border-0">
-                <h3 className="text-lg font-medium mb-2">{question.text}h3>
+                <h3 className="text-lg font-medium mb-2">{question.text}</h3>
                 
                 {question.type === QUESTION_TYPES.RATING && (
                   <div className="flex flex-wrap gap-2">
@@ -282,9 +283,9 @@ const SurveyView = () => {
                         onClick={() => handleAnswerChange(question.id, i + 1)}
                       >
                         {i + 1}
-                      button>
+                      </button>
                     ))}
-                  div>
+                  </div>
                 )}
                 
                 {question.type === QUESTION_TYPES.MULTIPLE_CHOICE && question.options && (
@@ -298,10 +299,10 @@ const SurveyView = () => {
                           checked={answers[question.id]?.includes(option)}
                           onChange={(e) => handleMultiChoiceChange(question.id, option, e.target.checked)}
                         />
-                        <label htmlFor={`${question.id}-${i}`}>{option}label>
-                      div>
+                        <label htmlFor={`${question.id}-${i}`}>{option}</label>
+                      </div>
                     ))}
-                  div>
+                  </div>
                 )}
                 
                 {question.type === QUESTION_TYPES.TEXT && (
@@ -313,13 +314,13 @@ const SurveyView = () => {
                     onChange={(e) => handleAnswerChange(question.id, e.target.value)}
                   />
                 )}
-              div>
+              </div>
             ))
           )}
-        CardContent>
+        </CardContent>
         <CardFooter>
           {error && (
-            <div className="text-red-500 mb-3 w-full text-center">{error}div>
+            <div className="text-red-500 mb-3 w-full text-center">{error}</div>
           )}
           <Button 
             className="w-full" 
@@ -330,14 +331,14 @@ const SurveyView = () => {
               <>
                 <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
                 Submitting...
-              
+              </>
             ) : (
               "Submit Feedback"
             )}
-          Button>
-        CardFooter>
-      Card>
-    div>
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   );
 };
 
