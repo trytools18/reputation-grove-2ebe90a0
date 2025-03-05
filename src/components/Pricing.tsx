@@ -1,168 +1,129 @@
 
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
-import { useLanguage } from "@/lib/languageContext";
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Chip } from "./ui/chip"
+import { Check } from "lucide-react"
+import { useLanguage } from '@/lib/languageContext'
 
-// Function to format currency
-const formatCurrency = (value: number, currency = "€") => {
-  return `${currency}${value}`;
-};
+const Pricing = () => {
+  const [annual, setAnnual] = useState(true)
+  const { t } = useLanguage()
 
-// Pricing plans data
-const pricingPlans = [
-  {
-    name: "Basic",
-    monthly: 29,
-    annual: 24,
-    description: "Perfect for small businesses just getting started with feedback collection.",
-    features: [
-      "Up to 3 feedback forms",
-      "100 responses per month",
-      "Basic analytics",
-      "Email support",
-      "30-day data retention"
-    ],
-    popular: false,
-    cta: "Start Basic"
-  },
-  {
-    name: "Pro",
-    monthly: 59,
-    annual: 49,
-    description: "Ideal for growing businesses looking to gain deeper customer insights.",
-    features: [
-      "Unlimited feedback forms",
-      "1,000 responses per month",
-      "Advanced analytics",
-      "Priority email support",
-      "Custom branding",
-      "90-day data retention",
-      "Export to CSV/Excel"
-    ],
-    popular: true,
-    cta: "Start Pro"
-  },
-  {
-    name: "Enterprise",
-    monthly: 119,
-    annual: 99,
-    description: "Complete solution for businesses with advanced feedback collection needs.",
-    features: [
-      "Everything in Pro",
-      "Unlimited responses",
-      "Dedicated account manager",
-      "Phone support",
-      "Custom integrations",
-      "1-year data retention",
-      "Team collaboration",
-      "Advanced security features"
-    ],
-    popular: false,
-    cta: "Contact Sales"
-  }
-];
-
-interface PricingProps {
-  id?: string;
-}
-
-const Pricing = ({ id = "pricing" }: PricingProps) => {
-  const [billingPeriod, setBillingPeriod] = React.useState<"monthly" | "annual">("monthly");
-  const navigate = useNavigate();
-  const { t } = useLanguage();
-
-  const handleSignUpClick = (plan: string) => {
-    if (plan === "Enterprise") {
-      // Maybe redirect to a contact form or open a modal
-      window.location.href = "mailto:sales@surveystacks.com?subject=Enterprise Plan Inquiry";
-    } else {
-      // Redirect to signup page with plan parameter
-      navigate(`/signup?plan=${plan.toLowerCase()}`);
+  const plans = [
+    {
+      name: t('pricing.free'),
+      description: t('pricing.freeDesc'),
+      monthly: 0,
+      annual: 0,
+      features: [
+        t('pricing.basicSurvey'),
+        t('pricing.responses100'),
+        t('pricing.basicAnalytics'),
+        t('pricing.emailSupport')
+      ]
+    },
+    {
+      name: t('pricing.pro'),
+      description: t('pricing.proDesc'),
+      monthly: 29,
+      annual: 24,
+      features: [
+        t('pricing.unlimitedSurveys'),
+        t('pricing.responses1000'),
+        t('pricing.googleMapsRedirect'),
+        t('pricing.advancedAnalytics'),
+        t('pricing.customQR'),
+        t('pricing.priorityEmail')
+      ],
+      popular: true
+    },
+    {
+      name: t('pricing.premium'),
+      description: t('pricing.premiumDesc'),
+      monthly: 79,
+      annual: 69,
+      features: [
+        t('pricing.everythingPro'),
+        t('pricing.unlimitedResponses'),
+        t('pricing.benchmarking'),
+        t('pricing.industryAverages'),
+        t('pricing.customBranding'),
+        t('pricing.apiAccess'),
+        t('pricing.dedicatedManager')
+      ]
     }
-  };
+  ]
 
   return (
-    <section id={id} className="py-20 bg-gray-50">
-      <div className="container px-4 mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            {t('pricing.title')}
-          </h2>
-          <p className="text-lg text-gray-600 mb-8">
-            {t('pricing.subtitle')}
+    <section id="pricing" className="py-24">
+      <div className="container mx-auto px-6">
+        <div className="text-center max-w-2xl mx-auto mb-12 reveal-on-scroll">
+          <Chip className="mb-4">{t('pricing.title')}</Chip>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">{t('pricing.heading')}</h2>
+          <p className="text-foreground/80 mb-8">
+            {t('pricing.description')}
           </p>
-          
-          <div className="inline-flex items-center p-1 bg-gray-100 rounded-lg">
-            <button
-              onClick={() => setBillingPeriod("monthly")}
-              className={`px-4 py-2 rounded-md ${
-                billingPeriod === "monthly"
-                  ? "bg-white shadow-sm font-medium"
-                  : "text-gray-500"
-              }`}
+
+          <div className="flex items-center justify-center space-x-3">
+            <span className={`text-sm ${!annual ? 'text-foreground' : 'text-foreground/60'}`}>{t('pricing.monthly')}</span>
+            <button 
+              onClick={() => setAnnual(!annual)} 
+              className={`relative w-12 h-6 rounded-full transition-colors ${annual ? 'bg-primary' : 'bg-gray-300'}`}
             >
-              {t('pricing.monthly')}
+              <span 
+                className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+                  annual ? 'translate-x-7' : 'translate-x-1'
+                }`} 
+              />
             </button>
-            <button
-              onClick={() => setBillingPeriod("annual")}
-              className={`px-4 py-2 rounded-md ${
-                billingPeriod === "annual"
-                  ? "bg-white shadow-sm font-medium"
-                  : "text-gray-500"
-              }`}
-            >
-              {t('pricing.annual')}
-              <span className="ml-1 text-xs text-green-600 font-medium">
-                {t('pricing.saveYear', { amount: 20 })}
-              </span>
-            </button>
+            <span className={`text-sm ${annual ? 'text-foreground' : 'text-foreground/60'}`}>
+              {t('pricing.annual')} <span className="text-green-600 font-medium">{t('pricing.save')}</span>
+            </span>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {pricingPlans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-all ${
-                plan.popular
-                  ? "ring-2 ring-primary md:scale-105"
-                  : "hover:shadow-md"
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {plans.map((plan, index) => (
+            <div 
+              key={index} 
+              className={`border rounded-xl overflow-hidden transition-all duration-300 reveal-on-scroll ${
+                plan.popular 
+                  ? 'shadow-lg scale-105 border-primary/50 relative z-10' 
+                  : 'shadow-sm hover:shadow-md'
               }`}
+              style={{ transitionDelay: `${index * 100}ms` }}
             >
               {plan.popular && (
-                <div className="bg-primary text-primary-foreground text-center py-1.5 text-sm font-medium">
+                <div className="bg-primary text-white text-xs font-medium py-1 text-center">
                   {t('pricing.mostPopular')}
                 </div>
               )}
-
               <div className="p-6">
-                <h3 className="text-xl font-bold">{plan.name}</h3>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-3xl font-bold">
-                    {formatCurrency(
-                      billingPeriod === "monthly" ? plan.monthly : plan.annual
-                    )}
-                  </span>
-                  <span className="ml-1 text-gray-500">/{t('pricing.mo')}</span>
+                <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                <p className="text-sm text-foreground/70 mb-6">{plan.description}</p>
+                <div className="mb-6">
+                  <p className="text-4xl font-bold">
+                    ${annual ? plan.annual : plan.monthly}
+                    <span className="text-sm font-normal text-foreground/70">/{t('pricing.mo')}</span>
+                  </p>
+                  {annual && plan.monthly > 0 && (
+                    <p className="text-sm text-green-600">
+                      {t('pricing.saveYear', { amount: (plan.monthly - plan.annual) * 12 })}
+                    </p>
+                  )}
                 </div>
-                <p className="mt-4 text-gray-600 text-sm">
-                  {plan.description}
-                </p>
-
-                <Button
-                  className="mt-6 w-full"
-                  onClick={() => handleSignUpClick(plan.name)}
+                <Button 
+                  className={`w-full rounded-lg mb-6 ${
+                    plan.popular ? '' : 'bg-foreground/90 hover:bg-foreground'
+                  }`}
                 >
                   {t('pricing.getStarted')}
                 </Button>
-
-                <ul className="mt-6 space-y-3">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex">
+                <ul className="space-y-3">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex text-sm">
                       <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">{feature}</span>
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -170,9 +131,15 @@ const Pricing = ({ id = "pricing" }: PricingProps) => {
             </div>
           ))}
         </div>
+
+        <div className="mt-16 text-center max-w-xl mx-auto pt-4 reveal-on-scroll">
+          <p className="text-foreground/80 text-sm">
+            {t('pricing.allPlans')} <a href="#" className="text-primary font-medium">{t('pricing.contactSales')}</a>.
+          </p>
+        </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default Pricing;
+export default Pricing
