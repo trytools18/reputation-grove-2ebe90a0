@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,8 @@ import { useSession } from "@/lib/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { QrCode, Copy, Link, Share2, ArrowLeft, ExternalLink } from "lucide-react";
+import { QrCode, Copy, Link, Share2, ArrowLeft, ExternalLink, Download } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 
 const SurveyShare = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +18,7 @@ const SurveyShare = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [qrVisible, setQrVisible] = useState(false);
   const [copySuccess, setCopySuccess] = useState('');
+  const qrRef = useRef<HTMLDivElement>(null);
   
   const { user } = useSession();
   const navigate = useNavigate();
@@ -80,6 +83,75 @@ const SurveyShare = () => {
     setQrVisible(true);
   };
 
+  const downloadQRCode = () => {
+    if (!qrRef.current) return;
+    
+    try {
+      // Get the SVG element
+      const svgElement = qrRef.current.querySelector('svg');
+      if (!svgElement) {
+        throw new Error('SVG element not found');
+      }
+      
+      // Create a canvas element
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        throw new Error('Could not create canvas context');
+      }
+      
+      // Set canvas dimensions (larger for better quality)
+      canvas.width = 512;
+      canvas.height = 512;
+      
+      // Create an image from the SVG
+      const img = new Image();
+      const svgData = new XMLSerializer().serializeToString(svgElement);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      
+      img.onload = () => {
+        // Fill white background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw the image
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to PNG
+        const pngUrl = canvas.toDataURL('image/png');
+        
+        // Create download link
+        const downloadLink = document.createElement('a');
+        downloadLink.href = pngUrl;
+        downloadLink.download = `${survey?.restaurant_name || 'survey'}-qrcode.png`;
+        
+        // Trigger download
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        // Clean up
+        URL.revokeObjectURL(svgUrl);
+        
+        toast({
+          title: "QR Code downloaded",
+          description: "The QR code has been saved to your device",
+        });
+      };
+      
+      // Set image source to SVG URL
+      img.src = svgUrl;
+    } catch (error: any) {
+      console.error('Error downloading QR code:', error);
+      toast({
+        title: "Download failed",
+        description: error.message || "Could not download QR code",
+        variant: "destructive"
+      });
+    }
+  };
+
   const openSurveyForm = () => {
     window.open(surveyUrl, '_blank');
   };
@@ -124,7 +196,7 @@ const SurveyShare = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium mb-4">{survey.restaurant_name}</h3>
+            <h3 className="text-lg font-medium mb-4">{survey?.restaurant_name}</h3>
             <div className="flex items-center space-x-2">
               <Input value={surveyUrl} readOnly />
               <Button variant="outline" onClick={copyToClipboard}>
@@ -166,13 +238,28 @@ const SurveyShare = () => {
           {qrVisible && (
             <div className="border-t pt-4">
               <h3 className="text-lg font-medium mb-4">QR Code</h3>
-              <div className="bg-gray-100 rounded-lg p-8 flex items-center justify-center">
-                <div className="w-48 h-48 border-2 border-dashed border-gray-400 flex items-center justify-center">
-                  <p className="text-center text-gray-500">QR Code Placeholder</p>
+              <div className="bg-white rounded-lg p-8 flex flex-col items-center justify-center gap-4">
+                <div 
+                  ref={qrRef} 
+                  className="w-64 h-64 flex items-center justify-center bg-white p-4 border border-gray-200 rounded-lg shadow-sm"
+                >
+                  <QRCodeSVG
+                    value={surveyUrl}
+                    size={240}
+                    level="H"
+                    includeMargin={true}
+                    bgColor={"#ffffff"}
+                    fgColor={"#000000"}
+                  />
                 </div>
-              </div>
-              <div className="mt-4 text-center">
-                <Button variant="outline">Download QR Code</Button>
+                <Button 
+                  variant="outline" 
+                  onClick={downloadQRCode}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download QR Code
+                </Button>
               </div>
             </div>
           )}
