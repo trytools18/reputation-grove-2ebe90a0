@@ -29,13 +29,13 @@ export const DB_TO_FRONTEND_TYPE = {
 };
 
 // Create a function to convert template questions to survey questions
-export const convertTemplateToSurvey = async (templateId: string, restaurantName: string, googleMapsUrl: string, userId: string) => {
+export const convertTemplateToSurvey = async (templateId: string, businessName: string, googleMapsUrl: string, userId: string) => {
   try {
     // 1. Create the form
     const { data: formData, error: formError } = await supabase
       .from('forms')
       .insert({
-        restaurant_name: restaurantName,
+        restaurant_name: businessName,
         google_maps_url: googleMapsUrl,
         minimum_positive_rating: 4,
         user_id: userId

@@ -12,7 +12,7 @@ import TemplateUseDialog from "@/components/TemplateUseDialog";
 const Templates = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedTemplate, setSelectedTemplate] = useState<{ id: string; name: string } | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<{ id: string; name: string; category?: string } | null>(null);
   const [showUseDialog, setShowUseDialog] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -44,7 +44,7 @@ const Templates = () => {
     fetchTemplates();
   }, [toast]);
 
-  const handleUseTemplate = (template: { id: string; name: string }) => {
+  const handleUseTemplate = (template: { id: string; name: string; category: string }) => {
     setSelectedTemplate(template);
     setShowUseDialog(true);
   };
@@ -112,7 +112,11 @@ const Templates = () => {
               <CardFooter>
                 <Button 
                   className="w-full" 
-                  onClick={() => handleUseTemplate({ id: template.id, name: template.name })}
+                  onClick={() => handleUseTemplate({ 
+                    id: template.id, 
+                    name: template.name,
+                    category: template.category 
+                  })}
                 >
                   Use Template
                 </Button>

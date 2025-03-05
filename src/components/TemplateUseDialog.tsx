@@ -16,26 +16,49 @@ interface TemplateUseDialogProps {
   template: {
     id: string;
     name: string;
+    category?: string;
   } | null;
 }
 
 const TemplateUseDialog = ({ isOpen, onClose, template }: TemplateUseDialogProps) => {
-  const [restaurantName, setRestaurantName] = useState("");
+  const [businessName, setBusinessName] = useState("");
   const [googleMapsUrl, setGoogleMapsUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useSession();
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Function to get the business type label based on template category
+  const getBusinessTypeLabel = () => {
+    if (!template?.category) return "Business";
+    
+    switch (template.category.toLowerCase()) {
+      case "restaurant":
+        return "Restaurant";
+      case "barbershop":
+        return "Barbershop";
+      case "salon":
+        return "Salon";
+      case "retail":
+        return "Store";
+      case "cafe":
+        return "Café";
+      default:
+        return "Business";
+    }
+  };
+
+  const businessType = getBusinessTypeLabel();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user || !template) return;
     
-    if (!restaurantName.trim()) {
+    if (!businessName.trim()) {
       toast({
-        title: "Restaurant name required",
-        description: "Please enter a name for your restaurant",
+        title: `${businessType} name required`,
+        description: `Please enter a name for your ${businessType.toLowerCase()}`,
         variant: "destructive"
       });
       return;
@@ -55,7 +78,7 @@ const TemplateUseDialog = ({ isOpen, onClose, template }: TemplateUseDialogProps
     try {
       const { id, error } = await convertTemplateToSurvey(
         template.id,
-        restaurantName,
+        businessName,
         googleMapsUrl,
         user.id
       );
@@ -88,18 +111,19 @@ const TemplateUseDialog = ({ isOpen, onClose, template }: TemplateUseDialogProps
         <DialogHeader>
           <DialogTitle>Create Survey from Template</DialogTitle>
           <DialogDescription>
-            Enter your restaurant details to create a survey using the {template?.name} template.
+            Enter your {businessType.toLowerCase()} details to create a survey using the {template?.name} template.
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="restaurant-name">Restaurant Name</Label>
+            <Label htmlFor="business-name">{businessType} Name</Label>
             <Input
-              id="restaurant-name"
-              value={restaurantName}
-              onChange={(e) => setRestaurantName(e.target.value)}
-              placeholder="Enter your restaurant name"
+              id="business-name"
+              value={businessName}
+              onChange={(e) => setBusinessName(e.target.value)}
+              className="max-w-lg"
+              placeholder={`Enter your ${businessType.toLowerCase()} name`}
               required
             />
           </div>
@@ -114,7 +138,7 @@ const TemplateUseDialog = ({ isOpen, onClose, template }: TemplateUseDialogProps
                   value={googleMapsUrl}
                   onChange={(e) => setGoogleMapsUrl(e.target.value)}
                   className="pl-10"
-                  placeholder="https://maps.app.goo.gl/your-restaurant"
+                  placeholder="https://maps.app.goo.gl/your-business"
                   required
                 />
               </div>
