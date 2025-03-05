@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { QUESTION_TYPES, DB_TO_FRONTEND_TYPE, supabase } from "@/integrations/supabase/client";
+import { QUESTION_TYPES, supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { Eye, Loader2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -51,15 +51,28 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
         
       if (questionsError) throw questionsError;
       
-      // Make sure we have mostly multiple choice and rating questions
+      // Process questions to ensure they are rendered properly
       const processedQuestions = questionsData?.map(q => {
-        // Ensure question type is either multiple-choice or rating, defaulting to what's in the DB
+        // If the question has a type that's not multiple-choice or rating,
+        // convert it to one of those types for preview purposes
         let questionType = q.type;
+        let options = q.options || [];
+        
         if (![QUESTION_TYPES.MULTIPLE_CHOICE, QUESTION_TYPES.RATING].includes(questionType)) {
-          console.log(`Converting question type from "${questionType}" to "multiple-choice"`);
-          // Instead of changing the database values here, we just modify the local display
+          // Default to multiple-choice with standard options if no options are provided
+          if (!options || options.length === 0) {
+            questionType = QUESTION_TYPES.MULTIPLE_CHOICE;
+            options = ['Excellent', 'Good', 'Average', 'Below average', 'Poor'];
+          } else {
+            questionType = QUESTION_TYPES.MULTIPLE_CHOICE;
+          }
         }
-        return q;
+        
+        return {
+          ...q,
+          type: questionType,
+          options: options
+        };
       }) || [];
       
       setTemplate(templateData);
@@ -72,43 +85,37 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
   };
 
   const renderQuestionPreview = (question: any) => {
-    switch (question.type) {
-      case QUESTION_TYPES.RATING:
-        return (
-          <div className="flex flex-wrap gap-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div 
-                key={i} 
-                className="w-10 h-10 rounded-full border hover:bg-primary/10 transition-colors flex items-center justify-center text-sm cursor-default"
-              >
-                {i + 1}
-              </div>
-            ))}
-          </div>
-        );
-      
-      case QUESTION_TYPES.MULTIPLE_CHOICE:
-        return question.options && (
-          <RadioGroup defaultValue={question.options[0]}>
-            {question.options.map((option: string, i: number) => (
-              <div key={i} className="flex items-center space-x-2 py-1">
-                <RadioGroupItem value={option} id={`option-${question.id}-${i}`} />
-                <Label htmlFor={`option-${question.id}-${i}`}>{option}</Label>
-              </div>
-            ))}
-          </RadioGroup>
-        );
-      
-      case QUESTION_TYPES.TEXT:
-      default:
-        return (
-          <Textarea 
-            className="w-full resize-none bg-muted/50 cursor-not-allowed" 
-            rows={3} 
-            placeholder="Text response field" 
-            disabled
-          />
-        );
+    // Always render either multiple-choice or rating
+    if (question.type === QUESTION_TYPES.RATING) {
+      return (
+        <div className="flex flex-wrap gap-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div 
+              key={i} 
+              className="w-10 h-10 rounded-full border hover:bg-primary/10 transition-colors flex items-center justify-center text-sm cursor-default"
+            >
+              {i + 1}
+            </div>
+          ))}
+        </div>
+      );
+    } else {
+      // Default to multiple choice
+      // Ensure we have options to display
+      const options = question.options && question.options.length > 0 
+        ? question.options 
+        : ['Excellent', 'Good', 'Average', 'Below average', 'Poor'];
+        
+      return (
+        <RadioGroup defaultValue={options[0]}>
+          {options.map((option: string, i: number) => (
+            <div key={i} className="flex items-center space-x-2 py-1">
+              <RadioGroupItem value={option} id={`option-${question.id}-${i}`} />
+              <Label htmlFor={`option-${question.id}-${i}`}>{option}</Label>
+            </div>
+          ))}
+        </RadioGroup>
+      );
     }
   };
 

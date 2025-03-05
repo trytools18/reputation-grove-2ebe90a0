@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
@@ -61,16 +60,25 @@ export const convertTemplateToSurvey = async (templateId: string, businessName: 
     // 3. Convert template questions to form questions
     // Ensure the question type matches the allowed types in the database constraint
     const questionsToInsert = templateQuestions.map((q, index) => {
-      // Validate and ensure the question type is primarily multiple-choice or rating
+      // Ensure we only use multiple-choice or rating by default, with text as fallback
       let questionType = q.type;
       
-      // Check if the type is valid, prioritizing multiple-choice and rating
-      if (![QUESTION_TYPES.RATING, QUESTION_TYPES.MULTIPLE_CHOICE, QUESTION_TYPES.TEXT].includes(questionType)) {
-        console.warn(`Invalid question type "${questionType}" detected. Defaulting to "multiple-choice".`);
-        // Default to multiple-choice if it has options, otherwise rating
-        questionType = q.options && q.options.length > 0 
-          ? QUESTION_TYPES.MULTIPLE_CHOICE 
-          : QUESTION_TYPES.RATING;
+      // If the question type is not one of the allowed types, or it's text type,
+      // determine a better type based on the content
+      if (![QUESTION_TYPES.RATING, QUESTION_TYPES.MULTIPLE_CHOICE].includes(questionType)) {
+        // Default to multiple-choice if it has options
+        if (q.options && q.options.length > 0) {
+          questionType = QUESTION_TYPES.MULTIPLE_CHOICE;
+        } 
+        // Use rating if the question text contains "rate" or "rating"
+        else if (q.text.toLowerCase().includes("rate") || q.text.toLowerCase().includes("experience")) {
+          questionType = QUESTION_TYPES.RATING;
+        }
+        // Otherwise default to multiple-choice with standard options
+        else {
+          questionType = QUESTION_TYPES.MULTIPLE_CHOICE;
+          q.options = ['Excellent', 'Good', 'Average', 'Below average', 'Poor'];
+        }
       }
       
       return {
