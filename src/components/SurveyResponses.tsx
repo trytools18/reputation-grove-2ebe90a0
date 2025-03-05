@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Chart } from "@/components/ui/chart";
+import { BarChart, PieChart, Pie, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface SurveyResponsesProps {
   surveyId: string;
@@ -202,21 +202,32 @@ const SurveyResponses = ({ surveyId }: SurveyResponsesProps) => {
           <div className="space-y-6">
             <h4 className="text-md font-medium">Rating Questions</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {analytics.ratingData.map((item, index) => (
+              {analytics.ratingData.map((item) => (
                 <Card key={item.questionId}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium">{item.questionText}</CardTitle>
                   </CardHeader>
                   <CardContent className="h-[250px]">
-                    <Chart 
-                      type="pie"
-                      data={item.data}
-                      dataKey="value"
-                      category="name"
-                      index="name"
-                      valueFormatter={(value) => `${value} responses`}
-                      colors={CHART_COLORS}
-                    />
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={item.data}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={true}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {item.data.map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => [`${value} responses`, ""]} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </CardContent>
                 </Card>
               ))}
@@ -228,21 +239,21 @@ const SurveyResponses = ({ surveyId }: SurveyResponsesProps) => {
           <div className="space-y-6 mt-8">
             <h4 className="text-md font-medium">Multiple Choice Questions</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {analytics.choiceData.map((item, index) => (
+              {analytics.choiceData.map((item) => (
                 <Card key={item.questionId}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium">{item.questionText}</CardTitle>
                   </CardHeader>
                   <CardContent className="h-[250px]">
-                    <Chart 
-                      type="bar"
-                      data={item.data}
-                      dataKey="value"
-                      category="name"
-                      index="name"
-                      valueFormatter={(value) => `${value} responses`}
-                      colors={['#8884d8']}
-                    />
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={item.data}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip formatter={(value) => [`${value} responses`, ""]} />
+                        <Bar dataKey="value" fill="#8884d8" />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </CardContent>
                 </Card>
               ))}
