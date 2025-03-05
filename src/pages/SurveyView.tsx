@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,6 @@ const SurveyView = () => {
       try {
         console.log("Fetching survey with ID:", id);
         
-        // Use maybeSingle() instead of single() to avoid the error when no rows are found
         const { data: formData, error: formError } = await supabase
           .from('forms')
           .select('*')
@@ -51,7 +49,6 @@ const SurveyView = () => {
         
         console.log("Found survey:", formData);
         
-        // Get the questions associated with this form
         const { data: questionsData, error: questionsError } = await supabase
           .from('questions')
           .select('*')
@@ -68,7 +65,6 @@ const SurveyView = () => {
         setSurvey(formData);
         setQuestions(questionsData || []);
         
-        // Initialize answers state with defaults based on question types
         const initialAnswers: Record<string, any> = {};
         questionsData?.forEach(q => {
           if (q.type === QUESTION_TYPES.RATING) {
@@ -131,7 +127,6 @@ const SurveyView = () => {
     try {
       console.log("Submitting answers:", answers);
       
-      // Validate answers - at least try to answer one question
       const hasAnsweredSomething = Object.values(answers).some(answer => {
         if (Array.isArray(answer) && answer.length > 0) return true;
         if (typeof answer === 'number' && answer > 0) return true;
@@ -143,11 +138,10 @@ const SurveyView = () => {
         throw new Error("Please answer at least one question");
       }
       
-      // Calculate average rating from rating questions
       const ratingQuestions = questions.filter(q => q.type === QUESTION_TYPES.RATING);
       const ratingValues = ratingQuestions
         .map(q => Number(answers[q.id]) || 0)
-        .filter(val => val > 0); // Only count answered ratings
+        .filter(val => val > 0);
       
       const averageRating = ratingValues.length > 0
         ? ratingValues.reduce((sum, val) => sum + val, 0) / ratingValues.length
@@ -155,7 +149,6 @@ const SurveyView = () => {
       
       console.log("Average rating:", averageRating);
       
-      // Submit to the submissions table
       const { error } = await supabase
         .from('submissions')
         .insert({
@@ -176,13 +169,12 @@ const SurveyView = () => {
       
       setSubmissionSuccess(true);
       
-      // Check if rating is high enough and if there's a Google Maps URL
       if (averageRating >= survey.minimum_positive_rating && survey.google_maps_url) {
         setShowGoogleMapsRedirect(true);
         
         toast({
-          title: "Redirecting to Google Maps",
-          description: "Please leave a review there as well!"
+          title: "We'd appreciate a review on Google Maps",
+          description: "Please click the link to leave a review!"
         });
       }
       
@@ -235,7 +227,7 @@ const SurveyView = () => {
             {showGoogleMapsRedirect && survey.google_maps_url && (
               <>
                 <p className="text-center mb-4">
-                  You'll be redirected to Google Maps to leave a review.
+                  We'd appreciate if you could leave a review on Google Maps as well.
                 </p>
                 <div className="flex justify-center">
                   <a 
@@ -243,10 +235,6 @@ const SurveyView = () => {
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-blue-500 hover:underline flex items-center"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.open(survey.google_maps_url, '_blank');
-                    }}
                   >
                     Open Google Maps
                   </a>
