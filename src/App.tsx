@@ -40,10 +40,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 // Dashboard route wrapper component
-const DashboardRoute = ({ children }: { children: React.ReactNode }) => {
+const DashboardRoute = ({ children, showBackButton = false }: { children: React.ReactNode, showBackButton?: boolean }) => {
   return (
     <ProtectedRoute>
-      <DashboardLayout>
+      <DashboardLayout showBackButton={showBackButton}>
         {children}
       </DashboardLayout>
     </ProtectedRoute>
@@ -84,22 +84,22 @@ const App = () => {
             </ProtectedRoute>
           } />
           <Route path="/create-survey" element={
-            <DashboardRoute>
+            <DashboardRoute showBackButton={true}>
               <SurveyCreator />
             </DashboardRoute>
           } />
           <Route path="/edit-survey" element={
-            <DashboardRoute>
+            <DashboardRoute showBackButton={true}>
               <SurveyCreator />
             </DashboardRoute>
           } />
           <Route path="/survey/:id/share" element={
-            <DashboardRoute>
+            <DashboardRoute showBackButton={true}>
               <SurveyShare />
             </DashboardRoute>
           } />
           <Route path="/survey/:id/results" element={
-            <DashboardRoute>
+            <DashboardRoute showBackButton={true}>
               <SurveyResults />
             </DashboardRoute>
           } />

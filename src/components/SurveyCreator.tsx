@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -11,8 +11,8 @@ import { supabase, QUESTION_TYPES, FRONTEND_TO_DB_TYPE, DB_TO_FRONTEND_TYPE } fr
 import { useToast } from "@/components/ui/use-toast"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useSession } from "@/lib/auth"
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
-// Question type definitions for UI display
 const QUESTION_TYPE_UI = [
   { id: "rating", label: "Rating", icon: <ListOrdered className="h-4 w-4" /> },
   { id: "multiplechoice", label: "Multiple Choice", icon: <CheckSquare className="h-4 w-4" /> },
@@ -60,6 +60,7 @@ const SurveyCreator = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [formId, setFormId] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+  const [showGoogleMapsError, setShowGoogleMapsError] = useState(false)
   
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -160,6 +161,27 @@ const SurveyCreator = () => {
     setQuestions(questions.filter(q => q.id !== id))
   }
 
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const reorderedQuestions = reorderQuestions(
+      questions,
+      result.source.index,
+      result.destination.index
+    );
+
+    setQuestions(reorderedQuestions);
+  };
+
+  const reorderQuestions = (list: Question[], startIndex: number, endIndex: number): Question[] => {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    return result;
+  };
+
   const saveSurvey = async () => {
     if (!user) {
       toast({
@@ -180,12 +202,14 @@ const SurveyCreator = () => {
     }
 
     if (!googleMapsUrl.trim()) {
+      setShowGoogleMapsError(true);
       toast({
         title: "Google Maps URL required",
         description: "Please provide a Google Maps URL for redirection",
         variant: "destructive"
-      })
-      return
+      });
+      setActiveTab("settings");
+      return;
     }
 
     setIsSaving(true)
@@ -282,21 +306,21 @@ const SurveyCreator = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
           <div>
-            <div className="flex items-center gap-3 mb-1">
+            <div className="flex flex-col gap-1 mb-1">
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="p-0 h-auto" 
+                className="p-0 h-auto w-fit" 
                 onClick={() => navigate("/dashboard")}
               >
                 <ArrowLeft className="h-4 w-4 mr-1" />
                 Back
               </Button>
               <h2 className="text-2xl font-bold">{isEditing ? "Edit Survey" : "Create Survey"}</h2>
+              <p className="text-foreground/70">
+                Design and customize your feedback survey
+              </p>
             </div>
-            <p className="text-foreground/70">
-              Design and customize your feedback survey
-            </p>
           </div>
           <div className="flex space-x-4">
             <TabsList>
@@ -317,6 +341,7 @@ const SurveyCreator = () => {
               onClick={saveSurvey} 
               disabled={isSaving}
               className="flex items-center gap-1"
+              variant="success"
             >
               {isSaving ? (
                 <>
@@ -398,128 +423,152 @@ const SurveyCreator = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {questions.map((question, index) => (
-                    <div key={question.id} className="border rounded-lg p-4 hover:shadow-sm transition-shadow">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <GripVertical className="h-5 w-5 text-foreground/30 cursor-move" />
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              {question.type === "rating" && <ListOrdered className="h-4 w-4 text-primary" />}
-                              {question.type === "multiplechoice" && <CheckSquare className="h-4 w-4 text-primary" />}
-                              {question.type === "text" && <AlignLeft className="h-4 w-4 text-primary" />}
-                              <span className="text-xs text-foreground/60">
-                                {question.type === "rating" ? "Rating" : 
-                                 question.type === "multiplechoice" ? "Multiple Choice" : "Text Response"}
-                              </span>
-                            </div>
-                            <Input 
-                              value={question.title} 
-                              onChange={(e) => updateQuestion(question.id, { title: e.target.value })}
-                              className="font-medium"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => updateQuestion(question.id, { required: !question.required })}
-                          >
-                            {question.required ? "Required" : "Optional"}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeQuestion(question.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {question.type === "multiplechoice" && (
-                        <div className="pl-8 space-y-2">
-                          {question.options?.map((option, optIndex) => (
-                            <div key={optIndex} className="flex items-center gap-2">
-                              <Circle className="h-4 w-4 text-foreground/30" />
-                              <Input 
-                                value={option} 
-                                onChange={(e) => {
-                                  const newOptions = [...(question.options || [])]
-                                  newOptions[optIndex] = e.target.value
-                                  updateQuestion(question.id, { options: newOptions })
-                                }}
-                                className="max-w-md"
-                              />
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  const newOptions = question.options?.filter((_, i) => i !== optIndex)
-                                  updateQuestion(question.id, { options: newOptions })
-                                }}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ))}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-6"
-                            onClick={() => {
-                              const newOptions = [...(question.options || []), `Option ${(question.options?.length || 0) + 1}`]
-                              updateQuestion(question.id, { options: newOptions })
-                            }}
-                          >
-                            <Plus className="h-3 w-3 mr-1" /> Add option
-                          </Button>
-                        </div>
-                      )}
-
-                      {question.type === "rating" && (
-                        <div className="pl-8 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm">Max rating:</span>
-                            <Select 
-                              defaultValue={question.maxRating?.toString() || "5"}
-                              onValueChange={(value) => updateQuestion(question.id, { maxRating: parseInt(value) })}
-                            >
-                              <SelectTrigger className="w-20">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="3">3</SelectItem>
-                                <SelectItem value="5">5</SelectItem>
-                                <SelectItem value="10">10</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {Array.from({ length: question.maxRating || 5 }).map((_, i) => (
+                <DragDropContext onDragEnd={onDragEnd}>
+                  <Droppable droppableId="questions">
+                    {(provided) => (
+                      <div 
+                        className="space-y-4"
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                      >
+                        {questions.map((question, index) => (
+                          <Draggable key={question.id} draggableId={question.id} index={index}>
+                            {(provided, snapshot) => (
                               <div 
-                                key={i} 
-                                className="w-8 h-8 rounded-full border bg-muted flex items-center justify-center text-sm"
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={`border rounded-lg p-4 hover:shadow-sm transition-shadow ${snapshot.isDragging ? "shadow-lg border-primary/30 bg-primary/5" : ""}`}
                               >
-                                {i + 1}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                                <div className="flex items-start justify-between mb-4">
+                                  <div className="flex items-center gap-3">
+                                    <div 
+                                      {...provided.dragHandleProps}
+                                      className="cursor-move hover:text-primary transition-colors"
+                                    >
+                                      <GripVertical className="h-5 w-5 text-foreground/50" />
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center gap-2 mb-1">
+                                        {question.type === "rating" && <ListOrdered className="h-4 w-4 text-primary" />}
+                                        {question.type === "multiplechoice" && <CheckSquare className="h-4 w-4 text-primary" />}
+                                        {question.type === "text" && <AlignLeft className="h-4 w-4 text-primary" />}
+                                        <span className="text-xs text-foreground/60">
+                                          {question.type === "rating" ? "Rating" : 
+                                          question.type === "multiplechoice" ? "Multiple Choice" : "Text Response"}
+                                        </span>
+                                      </div>
+                                      <Input 
+                                        value={question.title} 
+                                        onChange={(e) => updateQuestion(question.id, { title: e.target.value })}
+                                        className="font-medium"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => updateQuestion(question.id, { required: !question.required })}
+                                    >
+                                      {question.required ? "Required" : "Optional"}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => removeQuestion(question.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                </div>
 
-                      {question.type === "text" && (
-                        <div className="pl-8">
-                          <div className="border border-dashed rounded p-3 bg-muted/50 max-w-md">
-                            <div className="text-xs text-foreground/60 italic">Text input field will appear here</div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                                {question.type === "multiplechoice" && (
+                                  <div className="pl-8 space-y-2">
+                                    {question.options?.map((option, optIndex) => (
+                                      <div key={optIndex} className="flex items-center gap-2">
+                                        <Circle className="h-4 w-4 text-foreground/30" />
+                                        <Input 
+                                          value={option} 
+                                          onChange={(e) => {
+                                            const newOptions = [...(question.options || [])]
+                                            newOptions[optIndex] = e.target.value
+                                            updateQuestion(question.id, { options: newOptions })
+                                          }}
+                                          className="max-w-md"
+                                        />
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            const newOptions = question.options?.filter((_, i) => i !== optIndex)
+                                            updateQuestion(question.id, { options: newOptions })
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="ml-6"
+                                      onClick={() => {
+                                        const newOptions = [...(question.options || []), `Option ${(question.options?.length || 0) + 1}`]
+                                        updateQuestion(question.id, { options: newOptions })
+                                      }}
+                                    >
+                                      <Plus className="h-3 w-3 mr-1" /> Add option
+                                    </Button>
+                                  </div>
+                                )}
+
+                                {question.type === "rating" && (
+                                  <div className="pl-8 space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm">Max rating:</span>
+                                      <Select 
+                                        defaultValue={question.maxRating?.toString() || "5"}
+                                        onValueChange={(value) => updateQuestion(question.id, { maxRating: parseInt(value) })}
+                                      >
+                                        <SelectTrigger className="w-20">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="3">3</SelectItem>
+                                          <SelectItem value="5">5</SelectItem>
+                                          <SelectItem value="10">10</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {Array.from({ length: question.maxRating || 5 }).map((_, i) => (
+                                        <div 
+                                          key={i} 
+                                          className="w-8 h-8 rounded-full border bg-muted flex items-center justify-center text-sm"
+                                        >
+                                          {i + 1}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {question.type === "text" && (
+                                  <div className="pl-8">
+                                    <div className="border border-dashed rounded p-3 bg-muted/50 max-w-md">
+                                      <div className="text-xs text-foreground/60 italic">Text input field will appear here</div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
               )}
             </CardContent>
             <CardFooter className="flex justify-center border-t bg-muted/30 p-4">
@@ -567,13 +616,23 @@ const SurveyCreator = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="google-url" className="block mb-2">Google Maps URL</Label>
+                    <Label htmlFor="google-url" className="block mb-2">
+                      Google Maps URL
+                      {showGoogleMapsError && (
+                        <span className="ml-2 text-sm text-destructive">*Required</span>
+                      )}
+                    </Label>
                     <Input 
                       id="google-url" 
                       placeholder="https://g.page/your-restaurant/review" 
-                      className="w-full"
+                      className={`w-full ${showGoogleMapsError ? "border-destructive focus-visible:ring-destructive" : ""}`}
                       value={googleMapsUrl}
-                      onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                      onChange={(e) => {
+                        setGoogleMapsUrl(e.target.value);
+                        if (e.target.value.trim()) {
+                          setShowGoogleMapsError(false);
+                        }
+                      }}
                     />
                     <p className="text-sm text-foreground/60 mt-2">
                       Enter your Google Maps review URL. This is where customers will be redirected.
