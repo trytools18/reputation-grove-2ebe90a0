@@ -59,13 +59,26 @@ export const convertTemplateToSurvey = async (templateId: string, businessName: 
     }
     
     // 3. Convert template questions to form questions
-    const questionsToInsert = templateQuestions.map((q, index) => ({
-      form_id: formData.id,
-      text: q.text,
-      type: q.type,
-      options: q.options,
-      order: index
-    }));
+    // Make sure the question type matches one of the allowed types in QUESTION_TYPES
+    const questionsToInsert = templateQuestions.map((q, index) => {
+      // Validate and transform the type to ensure it matches allowed values
+      let validType = q.type;
+      
+      // Check if type needs to be normalized to match DB constraints
+      if (!Object.values(QUESTION_TYPES).includes(q.type)) {
+        // Try to find a matching type from our FRONTEND_TO_DB_TYPE mapping
+        validType = FRONTEND_TO_DB_TYPE[q.type.toLowerCase()] || QUESTION_TYPES.TEXT;
+        console.log(`Normalized question type from ${q.type} to ${validType}`);
+      }
+      
+      return {
+        form_id: formData.id,
+        text: q.text,
+        type: validType,
+        options: q.options,
+        order: index
+      };
+    });
     
     // 4. Insert questions
     const { error: insertError } = await supabase
