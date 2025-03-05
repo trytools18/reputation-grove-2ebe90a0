@@ -6,9 +6,21 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateUserProfile, useSession } from "@/lib/auth";
 import { toast } from "sonner";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { useBusinessCategories, useGreekCities } from "@/lib/i18n/businessData";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+
+const businessCategories = [
+  { value: "restaurant", label: "Restaurant" },
+  { value: "barbershop", label: "Barbershop" },
+  { value: "hotel", label: "Hotel" },
+  { value: "coffee", label: "Coffee Shop" },
+];
+
+const greekCities = [
+  { value: "athens", label: "Athens" },
+  { value: "thessaloniki", label: "Thessaloniki" },
+  { value: "patras", label: "Patras" },
+  { value: "heraklion", label: "Heraklion" },
+  { value: "larissa", label: "Larissa" },
+];
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -16,9 +28,6 @@ const Onboarding = () => {
   const [businessCategory, setBusinessCategory] = useState("");
   const [city, setCity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { t } = useLanguage();
-  const businessCategories = useBusinessCategories();
-  const greekCities = useGreekCities();
 
   if (isLoading) {
     return (
@@ -37,12 +46,12 @@ const Onboarding = () => {
     e.preventDefault();
     
     if (!businessCategory) {
-      toast.error(t("select_business_category"));
+      toast.error("Please select a business category");
       return;
     }
     
     if (!city) {
-      toast.error(t("select_city"));
+      toast.error("Please select a city");
       return;
     }
     
@@ -55,11 +64,11 @@ const Onboarding = () => {
         onboarding_completed: true,
       });
       
-      toast.success(t("onboarding_completed"));
+      toast.success("Onboarding completed!");
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Onboarding error:", error);
-      toast.error(error.message || t("error"));
+      toast.error(error.message || "Failed to complete onboarding");
     } finally {
       setIsSubmitting(false);
     }
@@ -68,28 +77,25 @@ const Onboarding = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
-        <div className="flex justify-end">
-          <LanguageSwitcher />
-        </div>
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-            {t("welcome_onboarding")}
+            Welcome to Your Feedback Journey
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            {t("onboarding_description")}
+            Tell us a bit about your business to get started
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4 rounded-md shadow-sm">
             <div className="space-y-2">
-              <Label htmlFor="business-category">{t("business_category")}</Label>
+              <Label htmlFor="business-category">Business Category</Label>
               <Select
                 value={businessCategory}
                 onValueChange={setBusinessCategory}
               >
                 <SelectTrigger id="business-category" className="w-full">
-                  <SelectValue placeholder={t("select_business_category")} />
+                  <SelectValue placeholder="Select your business category" />
                 </SelectTrigger>
                 <SelectContent>
                   {businessCategories.map((category) => (
@@ -102,13 +108,13 @@ const Onboarding = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="city">{t("city")}</Label>
+              <Label htmlFor="city">City</Label>
               <Select
                 value={city}
                 onValueChange={setCity}
               >
                 <SelectTrigger id="city" className="w-full">
-                  <SelectValue placeholder={t("select_city")} />
+                  <SelectValue placeholder="Select your city" />
                 </SelectTrigger>
                 <SelectContent>
                   {greekCities.map((city) => (
@@ -126,7 +132,7 @@ const Onboarding = () => {
             className="w-full"
             disabled={isSubmitting}
           >
-            {isSubmitting ? t("saving") : t("complete_setup")}
+            {isSubmitting ? "Saving..." : "Complete Setup"}
           </Button>
         </form>
       </div>

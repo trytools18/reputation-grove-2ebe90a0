@@ -1,114 +1,118 @@
 
-import { Link, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Settings, 
-  LogOut, 
-  FileQuestion,
-  Menu,
-  X
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { useSession, signOut } from "@/lib/auth";
-import { LanguageSwitcher } from "./LanguageSwitcher";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { signOut, useSession, useUserProfile } from "@/lib/auth";
+import { cn } from "@/lib/utils";
+import { BarChart, ChevronLeft, ChevronRight, Home, LogOut, PlusCircle, Settings, User } from "lucide-react";
 
 const DashboardSidebar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const { user } = useSession();
-  const { t } = useLanguage();
+  const { profile } = useUserProfile();
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
+  const isActive = (path: string) => {
+    return location.pathname === path;
   };
 
   const handleLogout = async () => {
-    await signOut();
-    window.location.href = "/login";
+    try {
+      await signOut();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account."
+      });
+      navigate("/login");
+    } catch (error: any) {
+      toast({
+        title: "Error logging out",
+        description: error.message || "There was an error logging out.",
+        variant: "destructive"
+      });
+    }
   };
 
   const navItems = [
-    {
-      label: t("dashboard"),
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      href: "/dashboard",
-      active: location.pathname === "/dashboard",
-    },
-    {
-      label: t("templates"),
-      icon: <FileText className="h-5 w-5" />,
-      href: "/templates",
-      active: location.pathname === "/templates",
-    },
-    {
-      label: t("account_settings"),
-      icon: <Settings className="h-5 w-5" />,
-      href: "/account-settings",
-      active: location.pathname === "/account-settings",
-    },
+    { icon: Home, label: "Dashboard", path: "/dashboard" },
+    { icon: BarChart, label: "Analytics", path: "/dashboard?tab=analytics" },
+    { icon: PlusCircle, label: "Create Survey", path: "/create-survey" },
+    { icon: User, label: "Account", path: "/account-settings" },
   ];
 
   return (
-    <>
-      {/* Mobile sidebar toggle */}
-      <div className="md:hidden fixed top-4 left-4 z-50">
-        <Button variant="outline" size="icon" onClick={toggleSidebar}>
-          <Menu className="h-4 w-4" />
+    <div
+      className={cn(
+        "h-screen bg-card border-r border-border flex flex-col transition-all duration-300",
+        collapsed ? "w-[70px]" : "w-[240px]"
+      )}
+    >
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        {!collapsed && (
+          <Link to="/" className="flex items-center">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mr-2">
+              <span className="text-primary-foreground font-semibold text-lg">R</span>
+            </div>
+            <span className="font-semibold text-xl">Repute</span>
+          </Link>
+        )}
+        {collapsed && (
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mx-auto">
+            <span className="text-primary-foreground font-semibold text-lg">R</span>
+          </div>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setCollapsed(!collapsed)}
+          className="h-8 w-8"
+        >
+          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </Button>
       </div>
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-40 flex flex-col w-64 bg-white border-r shadow-sm transition-transform duration-300 md:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-xl font-semibold">Feedback App</h2>
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden">
-            <X className="h-5 w-5" />
-          </Button>
+      <div className="p-2 flex-1">
+        <div className="space-y-1">
+          {navItems.map((item) => (
+            <Button
+              key={item.path}
+              variant={isActive(item.path) ? "secondary" : "ghost"}
+              className={cn(
+                "w-full justify-start",
+                collapsed ? "px-2" : "px-3"
+              )}
+              onClick={() => navigate(item.path)}
+            >
+              <item.icon className="h-5 w-5" />
+              {!collapsed && <span className="ml-2">{item.label}</span>}
+            </Button>
+          ))}
         </div>
+      </div>
 
-        <div className="flex-1 overflow-auto py-4">
-          <nav className="space-y-1 px-3">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  item.active
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted"
-                }`}
-                onClick={() => setIsOpen(false)}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-
-        <div className="p-4 border-t">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-sm font-medium truncate">{user?.email}</div>
-            <LanguageSwitcher />
+      <div className="p-4 border-t border-border">
+        {!collapsed && profile && (
+          <div className="mb-4">
+            <div className="text-sm font-medium truncate">{profile.business_name}</div>
+            <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
           </div>
-          <Button 
-            variant="outline" 
-            className="w-full flex items-center justify-center gap-2" 
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4" />
-            {t("logout")}
-          </Button>
-        </div>
-      </aside>
-    </>
+        )}
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10",
+            collapsed ? "px-2" : "px-3"
+          )}
+          onClick={handleLogout}
+        >
+          <LogOut className="h-5 w-5" />
+          {!collapsed && <span className="ml-2">Logout</span>}
+        </Button>
+      </div>
+    </div>
   );
 };
 
