@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -115,7 +114,7 @@ const Pricing = ({ id = "pricing" }: PricingProps) => {
             >
               {t('pricing.annual')}
               <span className="ml-1 text-xs text-green-600 font-medium">
-                {t('pricing.saveYear', { amount: 20 })}
+                {t('pricing.saveYear')}
               </span>
             </button>
           </div>
