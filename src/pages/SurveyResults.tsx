@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { supabase, QUESTION_TYPES, exportSurveyData } from "@/integrations/supab
 import { useToast } from "@/components/ui/use-toast";
 import { useSession } from "@/lib/auth";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Loader2, ArrowLeft, ClipboardCheck, Download, PieChart as PieChartIcon, BarChartIcon, ListIcon } from "lucide-react";
+import { Loader2, ArrowLeft, ClipboardCheck, Download, ListIcon, Badge } from "lucide-react";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
@@ -18,7 +17,7 @@ const SurveyResults = () => {
   const [questions, setQuestions] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("summary");
+  const [activeTab, setActiveTab] = useState("overview");
   const [error, setError] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState<any>({
     totalResponses: 0,
@@ -40,7 +39,6 @@ const SurveyResults = () => {
     setError(null);
     
     try {
-      // 1. Fetch the survey
       const { data: formData, error: formError } = await supabase
         .from('forms')
         .select('*')
@@ -58,7 +56,6 @@ const SurveyResults = () => {
       
       setSurvey(formData);
       
-      // 2. Fetch questions
       const { data: questionsData, error: questionsError } = await supabase
         .from('questions')
         .select('*')
@@ -69,7 +66,6 @@ const SurveyResults = () => {
       
       setQuestions(questionsData || []);
       
-      // 3. Fetch submissions
       const { data: submissionsData, error: submissionsError } = await supabase
         .from('submissions')
         .select('*')
@@ -80,7 +76,6 @@ const SurveyResults = () => {
       
       setSubmissions(submissionsData || []);
       
-      // 4. Calculate analytics for this specific survey
       if (submissionsData && submissionsData.length > 0) {
         processAnalytics(questionsData || [], submissionsData);
       }
@@ -101,17 +96,14 @@ const SurveyResults = () => {
   const processAnalytics = (questions: any[], submissions: any[]) => {
     const totalResponses = submissions.length;
     
-    // Calculate average rating for this specific survey
     const sum = submissions.reduce((acc, submission) => acc + (submission.average_rating || 0), 0);
     const averageRating = totalResponses > 0 ? sum / totalResponses : 0;
     
-    // Process each question's responses for this survey
     const questionStats: Record<string, any> = {};
     
     questions.forEach(question => {
       if (question.type === QUESTION_TYPES.RATING) {
-        // For rating questions, calculate distribution
-        const ratingCounts = [0, 0, 0, 0, 0]; // For 1-5 stars
+        const ratingCounts = [0, 0, 0, 0, 0];
         let totalAnswered = 0;
         
         submissions.forEach(submission => {
@@ -137,7 +129,6 @@ const SurveyResults = () => {
         };
         
       } else if (question.type === QUESTION_TYPES.MULTIPLE_CHOICE && question.options) {
-        // For multiple choice, count selections for each option
         const optionCounts: Record<string, number> = {};
         let totalSelections = 0;
         
@@ -155,7 +146,6 @@ const SurveyResults = () => {
               }
             });
           } else if (typeof selections === 'string') {
-            // Handle case where selection is stored as a string
             if (optionCounts[selections] !== undefined) {
               optionCounts[selections]++;
               totalSelections++;
@@ -181,7 +171,6 @@ const SurveyResults = () => {
         };
         
       } else if (question.type === QUESTION_TYPES.TEXT) {
-        // For text responses, list all answers
         const textResponses = submissions
           .filter(s => s.answers[question.id] && s.answers[question.id].trim() !== '')
           .map(s => ({
@@ -253,6 +242,10 @@ const SurveyResults = () => {
     );
   }
 
+  const ratingQuestions = questions.filter(q => q.type === QUESTION_TYPES.RATING);
+  const multipleChoiceQuestions = questions.filter(q => q.type === QUESTION_TYPES.MULTIPLE_CHOICE);
+  const textQuestions = questions.filter(q => q.type === QUESTION_TYPES.TEXT);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
@@ -290,22 +283,17 @@ const SurveyResults = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-3">
-          <TabsTrigger value="summary" className="flex items-center">
-            <PieChartIcon className="h-4 w-4 mr-2" />
-            Summary
-          </TabsTrigger>
-          <TabsTrigger value="questions" className="flex items-center">
-            <BarChartIcon className="h-4 w-4 mr-2" />
-            Questions
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="overview" className="flex items-center">
+            Overview & Questions
           </TabsTrigger>
           <TabsTrigger value="responses" className="flex items-center">
             <ListIcon className="h-4 w-4 mr-2" />
-            Responses
+            Individual Responses
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="summary" className="space-y-6">
+        <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="pb-2">
@@ -354,218 +342,178 @@ const SurveyResults = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Aggregated Ratings Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Rating Distribution</CardTitle>
-                  <CardDescription>How customers are rating this survey</CardDescription>
-                </CardHeader>
-                <CardContent className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[1, 2, 3, 4, 5].map(rating => {
-                          const count = submissions.filter(s => Math.round(s.average_rating) === rating).length;
-                          return {
-                            name: `${rating} Star${rating > 1 ? 's' : ''}`,
-                            value: count,
-                            percentage: submissions.length > 0 ? Math.round((count / submissions.length) * 100) : 0
-                          };
-                        })}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={true}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percentage }) => 
-                          percentage > 0 ? `${name}: ${percentage}%` : ''
-                        }
-                      >
-                        {[0, 1, 2, 3, 4].map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [`${value} responses`, 'Count']} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-              
-              {/* Multiple Choice Questions Summary */}
-              {questions.filter(q => q.type === QUESTION_TYPES.MULTIPLE_CHOICE).length > 0 ? (
+            <div className="space-y-8">
+              {ratingQuestions.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Response Distribution</CardTitle>
-                    <CardDescription>Most frequent responses to multiple choice questions</CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={questions
-                          .filter(q => q.type === QUESTION_TYPES.MULTIPLE_CHOICE)
-                          .slice(0, 1)
-                          .flatMap(question => {
-                            const stats = analytics.questionStats[question.id];
-                            if (!stats) return [];
-                            return stats.distribution.map((item: any) => ({
-                              ...item,
-                              question: question.text
-                            }));
-                          })}
-                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="value" name="Responses" fill="#82ca9d" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Submissions</CardTitle>
-                    <CardDescription>Last responses received</CardDescription>
+                    <CardTitle>Rating Questions</CardTitle>
+                    <CardDescription>Results from rating-based questions</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4 max-h-64 overflow-y-auto">
-                      {submissions.slice(0, 5).map((submission, index) => (
-                        <div key={index} className="border p-3 rounded-md">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              {Array.from({ length: 5 }).map((_, i) => (
-                                <svg
-                                  key={i}
-                                  className={`h-4 w-4 ${
-                                    i < Math.round(submission.average_rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300 fill-gray-300"
-                                  }`}
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                >
-                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
-                              ))}
-                              <span className="ml-2">
-                                {submission.average_rating.toFixed(1)}
-                              </span>
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {formatDate(submission.created_at)}
+                    <div className="space-y-10">
+                      {ratingQuestions.map((question, index) => {
+                        const stats = analytics.questionStats[question.id];
+                        if (!stats) return null;
+                        
+                        return (
+                          <div key={question.id} className="border-b pb-8 last:border-0 last:pb-0">
+                            <h3 className="text-xl font-semibold mb-2">{question.text}</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div className="h-64">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <PieChart>
+                                    <Pie
+                                      data={stats.distribution}
+                                      cx="50%"
+                                      cy="50%"
+                                      labelLine={true}
+                                      outerRadius={80}
+                                      fill="#8884d8"
+                                      dataKey="value"
+                                      label={({ name, percentage }) => 
+                                        percentage > 0 ? `${name}: ${percentage}%` : ''
+                                      }
+                                    >
+                                      {stats.distribution.map((_: any, index: number) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                      ))}
+                                    </Pie>
+                                    <Tooltip formatter={(value) => [`${value} responses`, 'Count']} />
+                                  </PieChart>
+                                </ResponsiveContainer>
+                              </div>
+                              <div className="flex flex-col justify-center space-y-2">
+                                <div className="flex items-center">
+                                  <Badge variant="success" className="mr-2">Average</Badge>
+                                  <span className="text-2xl font-bold">{stats.average.toFixed(1)} ★</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <Badge variant="secondary" className="mr-2">Responses</Badge>
+                                  <span>{stats.totalAnswered} answers</span>
+                                </div>
+                                <div className="mt-4">
+                                  <h4 className="text-sm font-medium mb-2">Rating Distribution</h4>
+                                  <ul className="list-disc list-inside space-y-1">
+                                    {stats.distribution.map((item: any) => (
+                                      <li key={item.name} className="text-sm">
+                                        {item.name}: {item.percentage}% ({item.value} responses)
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {multipleChoiceQuestions.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Multiple-Choice Questions</CardTitle>
+                    <CardDescription>Results from selection-based questions</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-10">
+                      {multipleChoiceQuestions.map((question, index) => {
+                        const stats = analytics.questionStats[question.id];
+                        if (!stats) return null;
+                        
+                        return (
+                          <div key={question.id} className="border-b pb-8 last:border-0 last:pb-0">
+                            <h3 className="text-xl font-semibold mb-2">{question.text}</h3>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              <div className="h-64">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <BarChart
+                                    layout="vertical"
+                                    data={stats.distribution}
+                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis type="number" />
+                                    <YAxis 
+                                      type="category" 
+                                      dataKey="name" 
+                                      width={150}
+                                      tick={{ fontSize: 12 }}
+                                    />
+                                    <Tooltip formatter={(value) => [`${value} responses`, 'Count']} />
+                                    <Bar dataKey="value" name="Responses" fill="#82ca9d" />
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </div>
+                              <div className="flex flex-col justify-center space-y-2">
+                                <div className="flex items-center">
+                                  <Badge variant="secondary" className="mr-2">Respondents</Badge>
+                                  <span>{stats.totalAnswered} people answered</span>
+                                </div>
+                                <div className="mt-4">
+                                  <h4 className="text-sm font-medium mb-2">Response Distribution</h4>
+                                  <ul className="list-disc list-inside space-y-1">
+                                    {stats.distribution.map((item: any) => (
+                                      <li key={item.name} className="text-sm">
+                                        {item.name}: {item.percentage}% ({item.value} responses)
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {textQuestions.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Text Questions</CardTitle>
+                    <CardDescription>Free-form text responses</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-8">
+                      {textQuestions.map((question) => {
+                        const stats = analytics.questionStats[question.id];
+                        if (!stats) return null;
+                        
+                        return (
+                          <div key={question.id} className="border-b pb-6 last:border-0 last:pb-0">
+                            <h3 className="text-xl font-semibold mb-2">{question.text}</h3>
+                            <div className="flex items-center mb-4">
+                              <Badge variant="secondary" className="mr-2">Responses</Badge>
+                              <span>{stats.totalAnswered} text answers</span>
+                            </div>
+                            
+                            {stats.responses.length > 0 ? (
+                              <div className="space-y-3 max-h-64 overflow-y-auto p-1">
+                                {stats.responses.map((resp: any, i: number) => (
+                                  <div key={i} className="p-3 bg-muted rounded-md">
+                                    <p className="mb-1">{resp.response}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Submitted: {formatDate(resp.timestamp)}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-muted-foreground italic">No text responses received yet</p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
               )}
             </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="questions" className="space-y-6">
-          {questions.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center">
-                <p className="text-muted-foreground">No questions found for this survey.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            questions.map((question, index) => (
-              <Card key={question.id}>
-                <CardHeader>
-                  <CardTitle className="text-xl">Question {index + 1}</CardTitle>
-                  <CardDescription>{question.text}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {!analytics.questionStats[question.id] ? (
-                    <p className="text-center text-muted-foreground py-4">No responses yet</p>
-                  ) : question.type === QUESTION_TYPES.RATING ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        <span className="text-2xl font-bold">
-                          {analytics.questionStats[question.id].average.toFixed(1)}
-                        </span>
-                        <div className="text-sm text-muted-foreground">
-                          Average rating from {analytics.questionStats[question.id].totalAnswered} responses
-                        </div>
-                      </div>
-                      
-                      <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={analytics.questionStats[question.id].distribution}
-                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="value" name="Number of Ratings" fill="#8884d8" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-                  ) : question.type === QUESTION_TYPES.MULTIPLE_CHOICE ? (
-                    <div className="space-y-4">
-                      <div className="text-sm text-muted-foreground">
-                        {analytics.questionStats[question.id].totalAnswered} respondents answered this question
-                      </div>
-                      
-                      <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={analytics.questionStats[question.id].distribution}
-                              cx="50%"
-                              cy="50%"
-                              labelLine={true}
-                              outerRadius={80}
-                              fill="#8884d8"
-                              dataKey="value"
-                              label={({ name, percent }) => 
-                                percent > 0.05 ? `${name}: ${(percent * 100).toFixed(0)}%` : ''
-                              }
-                            >
-                              {analytics.questionStats[question.id].distribution.map((_: any, index: number) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                              ))}
-                            </Pie>
-                            <Tooltip formatter={(value) => [`${value} responses`, 'Count']} />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="text-sm text-muted-foreground mb-4">
-                        {analytics.questionStats[question.id].totalAnswered} text responses received
-                      </div>
-                      
-                      {analytics.questionStats[question.id].responses.map((resp: any, i: number) => (
-                        <div key={i} className="p-3 bg-muted rounded-md">
-                          <p className="mb-1">{resp.response}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Submitted: {formatDate(resp.timestamp)}
-                          </p>
-                        </div>
-                      ))}
-                      
-                      {analytics.questionStats[question.id].responses.length === 0 && (
-                        <div className="text-center text-muted-foreground py-4">
-                          No text responses received yet
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))
           )}
         </TabsContent>
 
