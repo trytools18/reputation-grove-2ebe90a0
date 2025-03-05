@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -231,7 +232,7 @@ const SurveyView = () => {
                 </p>
                 <div className="flex justify-center">
                   <a 
-                    href={survey.google_maps_url} 
+                    href={ensureAbsoluteUrl(survey.google_maps_url)}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-blue-500 hover:underline flex items-center"
@@ -245,6 +246,14 @@ const SurveyView = () => {
         </Card>
       </div>
     );
+  }
+
+  // Function to ensure we have an absolute URL
+  function ensureAbsoluteUrl(url: string): string {
+    if (url && !url.match(/^https?:\/\//i)) {
+      return `https://${url}`;
+    }
+    return url;
   }
 
   return (
