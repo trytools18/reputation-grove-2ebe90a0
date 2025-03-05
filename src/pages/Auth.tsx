@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn, signUp, useSession, getUserProfile } from "@/lib/auth";
 import { toast } from "sonner";
+import { useLanguage } from "@/lib/languageContext";
 
 interface AuthProps {
   isSignUp?: boolean;
@@ -16,6 +17,7 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isLoading } = useSession();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"login" | "signup">(isSignUp ? "signup" : "login");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -64,11 +66,11 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
     
     try {
       await signIn({ email, password });
-      toast.success("Logged in successfully");
+      toast.success(t('auth.loginSuccess') || "Logged in successfully");
       // Redirect will happen in the useEffect based on onboarding status
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error.message || "Failed to log in");
+      toast.error(error.message || t('auth.loginFailed') || "Failed to log in");
     } finally {
       setIsSubmitting(false);
     }
@@ -79,24 +81,24 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
     setIsSubmitting(true);
     
     if (!businessName) {
-      toast.error("Business name is required");
+      toast.error(t('auth.businessNameRequired') || "Business name is required");
       setIsSubmitting(false);
       return;
     }
 
     if (!phoneNumber) {
-      toast.error("Phone number is required");
+      toast.error(t('auth.phoneNumberRequired') || "Phone number is required");
       setIsSubmitting(false);
       return;
     }
 
     try {
       await signUp({ email, password, businessName, phoneNumber });
-      toast.success("Account created! Please check your email to confirm your registration.");
+      toast.success(t('auth.signupSuccess') || "Account created! Please check your email to confirm your registration.");
       setActiveTab("login");
     } catch (error: any) {
       console.error("Signup error:", error);
-      toast.error(error.message || "Failed to create account");
+      toast.error(error.message || t('auth.signupFailed') || "Failed to create account");
     } finally {
       setIsSubmitting(false);
     }
@@ -115,12 +117,12 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-            {activeTab === "login" ? "Log in to your account" : "Create a new account"}
+            {activeTab === "login" ? t('auth.loginTitle') : t('auth.signupTitle')}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             {activeTab === "login" 
-              ? "Enter your credentials to access your account"
-              : "Sign up to start creating feedback surveys"}
+              ? t('auth.loginSubtitle')
+              : t('auth.signupSubtitle')}
           </p>
         </div>
 
@@ -130,33 +132,33 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
           className="mt-8"
         >
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsTrigger value="login">{t('common.login')}</TabsTrigger>
+            <TabsTrigger value="signup">{t('common.signup')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="login" className="mt-6">
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('auth.email')}</Label>
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  placeholder={t('auth.enterEmail') || "Enter your email"}
                   required
                   className="w-full"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t('auth.password')}</Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder={t('auth.enterPassword') || "Enter your password"}
                   required
                   className="w-full"
                 />
@@ -167,7 +169,7 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
                 className="w-full"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Logging in..." : "Log in"}
+                {isSubmitting ? t('auth.loggingIn') || "Logging in..." : t('common.login')}
               </Button>
             </form>
           </TabsContent>
@@ -175,52 +177,52 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
           <TabsContent value="signup" className="mt-6">
             <form onSubmit={handleSignup} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="businessName">Business Name</Label>
+                <Label htmlFor="businessName">{t('account.businessName')}</Label>
                 <Input
                   id="businessName"
                   type="text"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="Enter your business name"
+                  placeholder={t('auth.enterBusinessName') || "Enter your business name"}
                   required
                   className="w-full"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Phone Number</Label>
+                <Label htmlFor="phoneNumber">{t('auth.phoneNumber')}</Label>
                 <Input
                   id="phoneNumber"
                   type="tel"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="Enter your phone number"
+                  placeholder={t('auth.enterPhoneNumber') || "Enter your phone number"}
                   required
                   className="w-full"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signupEmail">Email</Label>
+                <Label htmlFor="signupEmail">{t('auth.email')}</Label>
                 <Input
                   id="signupEmail"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  placeholder={t('auth.enterEmail') || "Enter your email"}
                   required
                   className="w-full"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signupPassword">Password</Label>
+                <Label htmlFor="signupPassword">{t('auth.password')}</Label>
                 <Input
                   id="signupPassword"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a password (min 6 characters)"
+                  placeholder={t('auth.createPassword') || "Create a password (min 6 characters)"}
                   required
                   minLength={6}
                   className="w-full"
@@ -232,7 +234,7 @@ const Auth = ({ isSignUp }: AuthProps = {}) => {
                 className="w-full"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Creating account..." : "Create account"}
+                {isSubmitting ? t('auth.creatingAccount') || "Creating account..." : t('common.signup')}
               </Button>
             </form>
           </TabsContent>
