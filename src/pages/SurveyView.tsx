@@ -16,6 +16,7 @@ const SurveyView = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const [showGoogleMapsRedirect, setShowGoogleMapsRedirect] = useState(false);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -175,16 +176,14 @@ const SurveyView = () => {
       
       setSubmissionSuccess(true);
       
-      // If the average rating is high enough and there's a Google Maps URL, redirect
+      // Check if rating is high enough and if there's a Google Maps URL
       if (averageRating >= survey.minimum_positive_rating && survey.google_maps_url) {
+        setShowGoogleMapsRedirect(true);
+        
         toast({
           title: "Redirecting to Google Maps",
           description: "Please leave a review there as well!"
         });
-        
-        setTimeout(() => {
-          window.location.href = survey.google_maps_url;
-        }, 3000);
       }
       
     } catch (error: any) {
@@ -233,20 +232,26 @@ const SurveyView = () => {
             <CardDescription>Your feedback has been submitted successfully.</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-center mb-4">
-              {survey.google_maps_url ? "You'll be redirected to Google Maps to leave a review." : "We appreciate your time."}
-            </p>
-            {survey.google_maps_url && (
-              <div className="flex justify-center">
-                <a 
-                  href={survey.google_maps_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline flex items-center"
-                >
-                  Open Google Maps
-                </a>
-              </div>
+            {showGoogleMapsRedirect && survey.google_maps_url && (
+              <>
+                <p className="text-center mb-4">
+                  You'll be redirected to Google Maps to leave a review.
+                </p>
+                <div className="flex justify-center">
+                  <a 
+                    href={survey.google_maps_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline flex items-center"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.open(survey.google_maps_url, '_blank');
+                    }}
+                  >
+                    Open Google Maps
+                  </a>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
