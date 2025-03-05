@@ -1,13 +1,12 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Pie, PieChart, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
-import { PlusCircle, BarChart as BarChartIcon, PieChart as PieChartIcon, ArrowUpRight, Trash2 } from "lucide-react";
+import { Pie, PieChart, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ComposedChart, Line } from "recharts";
+import { PlusCircle, BarChart as BarChartIcon, PieChart as PieChartIcon, ArrowUpRight, Trash2, Globe, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useSession } from "@/lib/auth";
+import { supabase, fetchGlobalAnalytics } from "@/integrations/supabase/client";
+import { useSession, getUserProfile } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
@@ -21,16 +20,34 @@ const Dashboard = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [surveyToDelete, setSurveyToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [globalAnalytics, setGlobalAnalytics] = useState<any>(null);
+  const [isLoadingGlobal, setIsLoadingGlobal] = useState(false);
   const { user } = useSession();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      try {
+        const profile = await getUserProfile();
+        setUserProfile(profile);
+        return profile;
+      } catch (error: any) {
+        console.error("Error fetching user profile:", error);
+        return null;
+      }
+    };
+
     const fetchData = async () => {
       if (!user) return;
       
       setIsLoading(true);
       try {
+        // Fetch user profile first
+        const profile = await fetchProfile();
+        
         // Fetch surveys
         const { data: surveysData, error: surveysError } = await supabase
           .from('forms')
@@ -54,6 +71,20 @@ const Dashboard = () => {
         }
         
         setSurveys(surveysData || []);
+
+        // Fetch global analytics if profile has city and business category
+        if (profile && profile.city && profile.business_category) {
+          setIsLoadingGlobal(true);
+          const { data: globalData } = await fetchGlobalAnalytics(
+            profile.city,
+            profile.business_category
+          );
+
+          if (globalData) {
+            setGlobalAnalytics(globalData);
+          }
+          setIsLoadingGlobal(false);
+        }
       } catch (error: any) {
         console.error("Error fetching dashboard data:", error);
         toast({
@@ -145,6 +176,38 @@ const Dashboard = () => {
     };
   });
 
+  // Comparison data for global vs local
+  const getLocalAverageRating = () => {
+    if (submissions.length === 0) return 0;
+    return (submissions.reduce((sum, sub) => sum + sub.average_rating, 0) / submissions.length).toFixed(1);
+  };
+  
+  const getLocalTotalSubmissions = () => {
+    return submissions.length;
+  };
+  
+  const getLocalTotalSurveys = () => {
+    return surveys.length;
+  };
+  
+  const comparisonData = [
+    {
+      name: 'Average Rating',
+      local: parseFloat(getLocalAverageRating()),
+      global: globalAnalytics ? parseFloat(globalAnalytics.average_rating.toFixed(1)) : 0,
+    },
+    {
+      name: 'Submissions',
+      local: getLocalTotalSubmissions(),
+      global: globalAnalytics ? globalAnalytics.total_submissions : 0,
+    },
+    {
+      name: 'Surveys',
+      local: getLocalTotalSurveys(),
+      global: globalAnalytics ? globalAnalytics.total_surveys : 0,
+    }
+  ];
+  
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
   if (isLoading) {
@@ -183,6 +246,7 @@ const Dashboard = () => {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="surveys">Surveys</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="global">Global Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -475,6 +539,166 @@ const Dashboard = () => {
                         <Bar dataKey="averageRating" fill="#82ca9d" name="Avg. Rating" />
                       </BarChart>
                     </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="global">
+          <div className="grid grid-cols-1 gap-6">
+            {(!userProfile?.city || !userProfile?.business_category) ? (
+              <Card className="col-span-full">
+                <CardHeader>
+                  <CardTitle>Complete Your Profile</CardTitle>
+                  <CardDescription>Add your business category and city to see global analytics</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">
+                    Global analytics let you compare your performance with other businesses
+                    in your area and category.
+                  </p>
+                  <Button onClick={() => navigate("/onboarding")}>
+                    Update Profile
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : isLoadingGlobal ? (
+              <div className="flex items-center justify-center h-40">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : !globalAnalytics ? (
+              <Card className="col-span-full">
+                <CardHeader>
+                  <CardTitle>No Global Data Available</CardTitle>
+                  <CardDescription>
+                    There is no data available for {userProfile.city} in the {userProfile.business_category} category
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">
+                    As more businesses in your area use our platform, global analytics will become available.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Globe className="mr-2 h-5 w-5" />
+                      Global Performance Comparison
+                    </CardTitle>
+                    <CardDescription>
+                      How your business compares to others in {userProfile.city} ({userProfile.business_category})
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium">Average Rating</h3>
+                        <div className="flex items-end space-x-2">
+                          <span className="text-3xl font-bold">{getLocalAverageRating()}</span>
+                          <span className="text-sm text-muted-foreground mb-1">You</span>
+                          <TrendingUp className="h-4 w-4 mb-1.5 text-green-500" />
+                          <span className="text-xl font-medium text-muted-foreground">
+                            {globalAnalytics.average_rating.toFixed(1)}
+                          </span>
+                          <span className="text-sm text-muted-foreground mb-1">Global</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium">Total Submissions</h3>
+                        <div className="flex items-end space-x-2">
+                          <span className="text-3xl font-bold">{getLocalTotalSubmissions()}</span>
+                          <span className="text-sm text-muted-foreground mb-1">You</span>
+                          <TrendingUp className="h-4 w-4 mb-1.5 text-green-500" />
+                          <span className="text-xl font-medium text-muted-foreground">
+                            {Math.round(globalAnalytics.total_submissions / globalAnalytics.total_surveys)}
+                          </span>
+                          <span className="text-sm text-muted-foreground mb-1">Avg per Business</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium">Businesses in Your Area</h3>
+                        <div className="flex items-end space-x-2">
+                          <span className="text-3xl font-bold">{globalAnalytics.total_surveys}</span>
+                          <span className="text-sm text-muted-foreground mb-1">Total</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <ResponsiveContainer width="100%" height={300}>
+                      <ComposedChart data={comparisonData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="local" fill="#8884d8" name="Your Business" />
+                        <Bar dataKey="global" fill="#82ca9d" name="Global Average" />
+                        <Line type="monotone" dataKey="local" stroke="#ff7300" strokeWidth={3} name="Your Trend" />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+                
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>Insights</CardTitle>
+                    <CardDescription>What the data means for your business</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {parseFloat(getLocalAverageRating()) > globalAnalytics.average_rating ? (
+                        <div className="border-l-4 border-green-500 pl-4 py-2">
+                          <h4 className="font-medium">Above Average Rating</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Your average rating of {getLocalAverageRating()} is higher than the 
+                            average of {globalAnalytics.average_rating.toFixed(1)} for businesses in your area.
+                            Keep up the good work!
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="border-l-4 border-amber-500 pl-4 py-2">
+                          <h4 className="font-medium">Room for Improvement</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Your average rating of {getLocalAverageRating()} is slightly below the 
+                            average of {globalAnalytics.average_rating.toFixed(1)} for businesses in your area.
+                            Review your feedback to identify areas for improvement.
+                          </p>
+                        </div>
+                      )}
+                      
+                      {getLocalTotalSubmissions() > Math.round(globalAnalytics.total_submissions / globalAnalytics.total_surveys) ? (
+                        <div className="border-l-4 border-green-500 pl-4 py-2">
+                          <h4 className="font-medium">Strong Customer Engagement</h4>
+                          <p className="text-sm text-muted-foreground">
+                            You've collected {getLocalTotalSubmissions()} submissions, which is above the 
+                            average of {Math.round(globalAnalytics.total_submissions / globalAnalytics.total_surveys)} per business in your area.
+                            Your customers are engaged!
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="border-l-4 border-amber-500 pl-4 py-2">
+                          <h4 className="font-medium">Increase Customer Feedback</h4>
+                          <p className="text-sm text-muted-foreground">
+                            You've collected {getLocalTotalSubmissions()} submissions, which is below the 
+                            average of {Math.round(globalAnalytics.total_submissions / globalAnalytics.total_surveys)} per business in your area.
+                            Consider sharing your survey with more customers.
+                          </p>
+                        </div>
+                      )}
+                      
+                      <div className="border-l-4 border-blue-500 pl-4 py-2">
+                        <h4 className="font-medium">Market Context</h4>
+                        <p className="text-sm text-muted-foreground">
+                          There are {globalAnalytics.total_surveys} businesses in {userProfile.city} in the {userProfile.business_category} category
+                          using our platform. This gives you a good benchmark for local performance.
+                        </p>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </>

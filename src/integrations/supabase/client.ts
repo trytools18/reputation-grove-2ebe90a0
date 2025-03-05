@@ -81,4 +81,25 @@ export const convertTemplateToSurvey = async (templateId: string, businessName: 
   }
 };
 
+// Function to fetch global analytics data for comparison
+export const fetchGlobalAnalytics = async (city: string, businessCategory: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('global_analytics')
+      .select('*')
+      .eq('city', city)
+      .eq('business_category', businessCategory)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned" - not an error for us
+      throw error;
+    }
+    
+    return { data, error: null };
+  } catch (error: any) {
+    console.error("Error fetching global analytics:", error);
+    return { data: null, error: error.message || "Failed to fetch global analytics" };
+  }
+};
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
