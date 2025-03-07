@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'en' | 'el';
@@ -269,6 +270,7 @@ export const translations = {
     'account.profile': 'Profile',
     'account.business': 'Business Information',
     'account.businessName': 'Business Name',
+    'account.phoneNumber': 'Phone Number',
     'account.category': 'Business Category',
     'account.city': 'City',
     'account.theme': 'Theme',
@@ -292,6 +294,7 @@ export const translations = {
     'category.beautySalon': 'Beauty Salon',
     'category.gym': 'Gym',
     'category.other': 'Other',
+    'category.business': 'Business',
 
     // Cities
     'city.athens': 'Athens',
@@ -597,6 +600,7 @@ export const translations = {
     'account.profile': 'Προφίλ',
     'account.business': 'Πληροφορίες Επιχείρησης',
     'account.businessName': 'Όνομα Επιχείρησης',
+    'account.phoneNumber': 'Αριθμός Τηλεφώνου',
     'account.category': 'Κατηγορία Επιχείρησης',
     'account.city': 'Πόλη',
     'account.theme': 'Θέμα',
@@ -620,6 +624,7 @@ export const translations = {
     'category.beautySalon': 'Κομμωτήριο',
     'category.gym': 'Γυμναστήριο',
     'category.other': 'Άλλο',
+    'category.business': 'Επιχείρηση',
 
     // Cities
     'city.athens': 'Αθήνα',
@@ -705,3 +710,4 @@ export const useLanguage = () => {
   }
   return context;
 };
+

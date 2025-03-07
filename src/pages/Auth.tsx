@@ -1,231 +1,167 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn, signUp } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signIn, signUp, useSession, getUserProfile } from "@/lib/auth";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from '@/lib/languageContext';
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
-interface AuthProps {
-  isSignUp?: boolean;
-}
-
-const Auth = ({ isSignUp }: AuthProps = {}) => {
+const Auth = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user, isLoading } = useSession();
-  const [activeTab, setActiveTab] = useState<"login" | "signup">(isSignUp ? "signup" : "login");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const { t } = useLanguage();
+
+  // Define the login form schema
+  const loginFormSchema = z.object({
+    email: z.string().email(t('auth.email') + " " + t('common.required')),
+    password: z.string().min(6, t('auth.password') + " " + t('common.required')),
+  });
   
-  // Form states
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [businessName, setBusinessName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  // Define the signup form schema
+  const signupFormSchema = z.object({
+    email: z.string().email(t('auth.email') + " " + t('common.required')),
+    password: z.string().min(6, t('auth.password') + " " + t('common.required')),
+    businessName: z.string().min(2, t('account.businessName') + " " + t('common.required')),
+    phoneNumber: z.string().optional(),
+  });
 
-  useEffect(() => {
-    // Check URL parameters for tab selection
-    const searchParams = new URLSearchParams(location.search);
-    const tab = searchParams.get("tab");
-    if (tab === "signup") {
-      setActiveTab("signup");
-    }
-  }, [location]);
+  // Determine the form schema based on the current mode
+  const formSchema = isLogin ? loginFormSchema : signupFormSchema;
 
-  useEffect(() => {
-    // Redirect if logged in
-    const checkAuthAndRedirect = async () => {
-      if (user && !isLoading) {
-        try {
-          const profile = await getUserProfile();
-          if (profile && !profile.onboarding_completed) {
-            navigate("/onboarding");
-          } else {
-            navigate("/dashboard");
-          }
-        } catch (error) {
-          console.error("Error checking profile:", error);
-          navigate("/dashboard");
-        }
+  // Setup form with React Hook Form
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: isLogin 
+      ? { email: "", password: "" } 
+      : { email: "", password: "", businessName: "", phoneNumber: "" },
+  });
+
+  const onSubmit = async (data: any) => {
+    setIsLoading(true);
+    try {
+      if (isLogin) {
+        await signIn({ email: data.email, password: data.password });
+        navigate("/dashboard");
+      } else {
+        await signUp({
+          email: data.email,
+          password: data.password,
+          businessName: data.businessName,
+          phoneNumber: data.phoneNumber,
+        });
+        toast({
+          title: t('app.name'),
+          description: t('auth.loggedOut'),
+        });
+        navigate("/dashboard");
       }
-    };
-    
-    checkAuthAndRedirect();
-  }, [user, isLoading, navigate]);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      await signIn({ email, password });
-      toast.success("Logged in successfully");
-      // Redirect will happen in the useEffect based on onboarding status
     } catch (error: any) {
-      console.error("Login error:", error);
-      toast.error(error.message || "Failed to log in");
+      console.error("Authentication error:", error);
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: "destructive",
+      });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    if (!businessName) {
-      toast.error("Business name is required");
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      await signUp({ email, password, businessName, phoneNumber });
-      toast.success("Account created! Please check your email to confirm your registration.");
-      setActiveTab("login");
-    } catch (error: any) {
-      console.error("Signup error:", error);
-      toast.error(error.message || "Failed to create account");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-            {activeTab === "login" ? "Log in to your account" : "Create a new account"}
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            {activeTab === "login" 
-              ? "Enter your credentials to access your account"
-              : "Sign up to start creating feedback surveys"}
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
+      <div className="w-full max-w-md space-y-6 rounded-lg border bg-card p-6 shadow-md">
+        <div className="space-y-2 text-center">
+          <h1 className="text-3xl font-bold">
+            {isLogin ? t('auth.loginTitle') : t('auth.signupTitle')}
+          </h1>
+          <p className="text-muted-foreground">
+            {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}{' '}
+            <button 
+              onClick={() => setIsLogin(!isLogin)} 
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              {isLogin ? t('auth.signUp') : t('auth.logIn')}
+            </button>
           </p>
         </div>
-
-        <Tabs 
-          value={activeTab} 
-          onValueChange={(value) => setActiveTab(value as "login" | "signup")}
-          className="mt-8"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="login" className="mt-6">
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  required
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  required
-                  className="w-full"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Logging in..." : "Log in"}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">{t('auth.email')}</Label>
+            <Input
+              id="email"
+              placeholder="email@example.com"
+              type="email"
+              autoCapitalize="none"
+              autoComplete="email"
+              autoCorrect="off"
+              {...register("email")}
+            />
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">{t('auth.password')}</Label>
+              <Button variant="link" className="h-auto p-0 text-sm" type="button">
+                {t('auth.forgotPassword')}
               </Button>
-            </form>
-          </TabsContent>
-
-          <TabsContent value="signup" className="mt-6">
-            <form onSubmit={handleSignup} className="space-y-6">
+            </div>
+            <Input
+              id="password"
+              type="password"
+              autoComplete={isLogin ? "current-password" : "new-password"}
+              {...register("password")}
+            />
+            {errors.password && (
+              <p className="text-sm text-destructive">{errors.password.message}</p>
+            )}
+          </div>
+          
+          {!isLogin && (
+            <>
               <div className="space-y-2">
-                <Label htmlFor="businessName">Business Name</Label>
+                <Label htmlFor="businessName">{t('account.businessName')}</Label>
                 <Input
                   id="businessName"
+                  placeholder={t('template.enterBusinessName', { type: t('category.business') })}
                   type="text"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="Enter your business name"
-                  required
-                  className="w-full"
+                  {...register("businessName")}
                 />
+                {errors.businessName && (
+                  <p className="text-sm text-destructive">{errors.businessName.message}</p>
+                )}
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Phone Number</Label>
+                <Label htmlFor="phoneNumber">{t('account.phoneNumber') || 'Phone Number'}</Label>
                 <Input
                   id="phoneNumber"
+                  placeholder="+1 234 567 8900"
                   type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="Enter your phone number"
-                  className="w-full"
+                  {...register("phoneNumber")}
                 />
+                {errors.phoneNumber && (
+                  <p className="text-sm text-destructive">{errors.phoneNumber.message}</p>
+                )}
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="signupEmail">Email</Label>
-                <Input
-                  id="signupEmail"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  required
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="signupPassword">Password</Label>
-                <Input
-                  id="signupPassword"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a password (min 6 characters)"
-                  required
-                  minLength={6}
-                  className="w-full"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Creating account..." : "Create account"}
-              </Button>
-            </form>
-          </TabsContent>
-        </Tabs>
+            </>
+          )}
+          
+          <Button className="w-full" type="submit" disabled={isLoading}>
+            {isLoading ? t('common.loading') : isLogin ? t('auth.logIn') : t('auth.signUp')}
+          </Button>
+        </form>
       </div>
     </div>
   );
