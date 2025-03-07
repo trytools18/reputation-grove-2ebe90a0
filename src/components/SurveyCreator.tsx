@@ -13,7 +13,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useSession } from "@/lib/auth";
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useLanguage } from "@/lib/languageContext";
-import LanguageSwitcher from "./LanguageSwitcher";
+
 const QUESTION_TYPE_UI = [{
   id: "rating",
   label: "Rating",
@@ -27,6 +27,7 @@ const QUESTION_TYPE_UI = [{
   label: "Text Response",
   icon: <AlignLeft className="h-4 w-4" />
 }];
+
 interface Question {
   id: string;
   type: string;
@@ -35,6 +36,7 @@ interface Question {
   options?: string[];
   maxRating?: number;
 }
+
 const SurveyCreator = () => {
   const {
     t
@@ -75,6 +77,7 @@ const SurveyCreator = () => {
     user
   } = useSession();
   const location = useLocation();
+
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const id = queryParams.get("id");
@@ -84,6 +87,7 @@ const SurveyCreator = () => {
       fetchSurveyData(id);
     }
   }, [location]);
+
   const fetchSurveyData = async (id: string) => {
     if (!user) return;
     try {
@@ -125,6 +129,7 @@ const SurveyCreator = () => {
       });
     }
   };
+
   const addQuestion = (type: string) => {
     const newQuestion: Question = {
       id: `q${Date.now()}`,
@@ -140,15 +145,18 @@ const SurveyCreator = () => {
     }
     setQuestions([...questions, newQuestion]);
   };
+
   const updateQuestion = (id: string, updates: Partial<Question>) => {
     setQuestions(questions.map(q => q.id === id ? {
       ...q,
       ...updates
     } : q));
   };
+
   const removeQuestion = (id: string) => {
     setQuestions(questions.filter(q => q.id !== id));
   };
+
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) {
       return;
@@ -156,12 +164,14 @@ const SurveyCreator = () => {
     const reorderedQuestions = reorderQuestions(questions, result.source.index, result.destination.index);
     setQuestions(reorderedQuestions);
   };
+
   const reorderQuestions = (list: Question[], startIndex: number, endIndex: number): Question[] => {
     const result = Array.from(list);
     const [removed] = result.splice(startIndex, 1);
     result.splice(endIndex, 0, removed);
     return result;
   };
+
   const saveSurvey = async () => {
     if (!user) {
       toast({
@@ -257,16 +267,13 @@ const SurveyCreator = () => {
       setIsSaving(false);
     }
   };
+
   return <div className="container mx-auto px-6 py-12">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
           <div>
             <div className="flex flex-col gap-1 mb-1">
-              
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold">{isEditing ? t('survey.edit') : t('survey.create')}</h2>
-                <LanguageSwitcher variant="ghost" size="sm" />
-              </div>
+              <h2 className="text-2xl font-bold">{isEditing ? t('survey.edit') : t('survey.create')}</h2>
               <p className="text-foreground/70">
                 Design and customize your feedback survey
               </p>
@@ -588,4 +595,5 @@ const SurveyCreator = () => {
       </Tabs>
     </div>;
 };
+
 export default SurveyCreator;

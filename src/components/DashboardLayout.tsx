@@ -4,6 +4,7 @@ import DashboardSidebar from "./DashboardSidebar";
 import { Button } from "./ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/lib/languageContext";
 
 type DashboardLayoutProps = {
   children: ReactNode;
@@ -12,6 +13,7 @@ type DashboardLayoutProps = {
 
 const DashboardLayout = ({ children, showBackButton = false }: DashboardLayoutProps) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   return (
     <div className="flex h-screen overflow-hidden">
@@ -26,7 +28,7 @@ const DashboardLayout = ({ children, showBackButton = false }: DashboardLayoutPr
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
+              {t('common.back')}
             </Button>
           </div>
         )}
