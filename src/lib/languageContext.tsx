@@ -258,7 +258,7 @@ export const translations = {
     // Survey Results
     'surveyResults.title': 'Survey Results',
     'surveyResults.overview': 'Overview',
-    'surveyResults.responses': 'Responses',
+    'dashboard.responses': 'Responses',
     'surveyResults.noResponses': 'No responses yet',
     'surveyResults.waitingForResponses': 'Waiting for your first response',
     'surveyResults.shareToGetResponses': 'Share your survey to start collecting responses',
