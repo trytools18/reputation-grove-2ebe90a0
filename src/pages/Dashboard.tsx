@@ -11,7 +11,6 @@ import { useSession, useUserProfile } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useLanguage } from "@/lib/languageContext";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -25,7 +24,6 @@ const Dashboard = () => {
   const { profile } = useUserProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -154,68 +152,68 @@ const Dashboard = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold">{t('dashboard.welcome')}, {profile?.business_name || t('common.user')}</h1>
-          <p className="text-muted-foreground mt-1">{t('dashboard.monitor')}</p>
+          <h1 className="text-3xl font-bold">Welcome, {profile?.business_name || "User"}</h1>
+          <p className="text-muted-foreground mt-1">Monitor your feedback and analytics</p>
         </div>
         <div className="flex space-x-2">
           <Button 
             onClick={() => navigate("/templates")}
             variant="outline"
           >
-            {t('template.useTemplate')}
+            Use Template
           </Button>
           <Button 
             onClick={() => navigate("/create-survey")}
           >
             <PlusCircle className="mr-2 h-4 w-4" />
-            {t('survey.create')}
+            Create Survey
           </Button>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
-          <TabsTrigger value="overview">{t('dashboard.overview')}</TabsTrigger>
-          <TabsTrigger value="surveys">{t('dashboard.surveys')}</TabsTrigger>
-          <TabsTrigger value="analytics">{t('dashboard.analytics')}</TabsTrigger>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="surveys">Surveys</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">{t('dashboard.totalSurveys')}</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Surveys</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{surveys.length}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {surveys.length === 0 ? t('dashboard.noSurveys') : t('dashboard.surveysCreated')}
+                  {surveys.length === 0 ? "No surveys created yet" : "Surveys created to date"}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">{t('dashboard.totalResponses')}</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Responses</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{submissions.length}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {submissions.length === 0 ? t('dashboard.noResponses') : t('dashboard.responsesCollected')}
+                  {submissions.length === 0 ? "No responses received yet" : "Responses collected to date"}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">{t('dashboard.averageRating')}</CardTitle>
+                <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
                   {submissions.length > 0 
                     ? (submissions.reduce((sum, sub) => sum + sub.average_rating, 0) / submissions.length).toFixed(1)
-                    : t('dashboard.noData')}
+                    : "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {submissions.length === 0 ? t('dashboard.noResponses') : t('dashboard.avgRatingAcross')}
+                  {submissions.length === 0 ? "No ratings received yet" : "Average rating across all surveys"}
                 </p>
               </CardContent>
             </Card>
@@ -223,17 +221,17 @@ const Dashboard = () => {
 
           {surveys.length === 0 ? (
             <div className="mt-8 text-center py-12 border-2 border-dashed rounded-lg">
-              <h3 className="text-lg font-medium mb-2">{t('dashboard.noSurveys')}</h3>
-              <p className="text-muted-foreground mb-4">{t('dashboard.noSurveysDescription')}</p>
+              <h3 className="text-lg font-medium mb-2">No surveys created yet</h3>
+              <p className="text-muted-foreground mb-4">Create your first survey or use a template to get started</p>
               <div className="flex justify-center gap-4">
                 <Button 
                   variant="outline" 
                   onClick={() => navigate("/templates")}
                 >
-                  {t('template.useTemplate')}
+                  Use Template
                 </Button>
                 <Button onClick={() => navigate("/create-survey")}>
-                  {t('survey.create')}
+                  Create Survey
                 </Button>
               </div>
             </div>
@@ -241,13 +239,13 @@ const Dashboard = () => {
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="md:col-span-2">
                 <CardHeader>
-                  <CardTitle>{t('dashboard.recentFeedback')}</CardTitle>
-                  <CardDescription>{t('dashboard.latestFeedback')}</CardDescription>
+                  <CardTitle>Recent Feedback</CardTitle>
+                  <CardDescription>The latest feedback from your customers</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {submissions.length === 0 ? (
                     <div className="text-center py-8 border border-dashed rounded">
-                      <p className="text-muted-foreground">{t('dashboard.noFeedback')}</p>
+                      <p className="text-muted-foreground">No feedback received yet</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -257,7 +255,7 @@ const Dashboard = () => {
                           <div key={index} className="border rounded-md p-4">
                             <div className="flex justify-between items-start">
                               <div>
-                                <h4 className="font-medium">{survey?.restaurant_name || t('dashboard.survey')}</h4>
+                                <h4 className="font-medium">{survey?.restaurant_name || "Survey"}</h4>
                                 <div className="flex mt-1">
                                   {Array.from({ length: 5 }).map((_, i) => (
                                     <svg
@@ -277,11 +275,11 @@ const Dashboard = () => {
                                 </div>
                               </div>
                               <Badge variant={submission.average_rating >= 4 ? "success" : "default"}>
-                                {submission.average_rating >= 4 ? t('dashboard.positive') : t('dashboard.neutral')}
+                                {submission.average_rating >= 4 ? "Positive" : "Neutral"}
                               </Badge>
                             </div>
                             <p className="text-sm mt-2 text-muted-foreground">
-                              {t('dashboard.submitted')} {new Date(submission.created_at).toLocaleDateString()}
+                              Submitted {new Date(submission.created_at).toLocaleDateString()}
                             </p>
                             <div className="mt-2">
                               <Button 
@@ -290,7 +288,7 @@ const Dashboard = () => {
                                 className="text-sm text-primary p-0 h-auto"
                                 onClick={() => navigate(`/survey/${submission.form_id}/results`)}
                               >
-                                {t('dashboard.viewDetails')} <ArrowUpRight className="h-3 w-3 ml-1" />
+                                View details <ArrowUpRight className="h-3 w-3 ml-1" />
                               </Button>
                             </div>
                           </div>
@@ -302,7 +300,7 @@ const Dashboard = () => {
                 {submissions.length > 0 && (
                   <CardFooter>
                     <Button variant="outline" className="w-full" onClick={() => setActiveTab("analytics")}>
-                      {t('dashboard.viewAllAnalytics')}
+                      View All Analytics
                     </Button>
                   </CardFooter>
                 )}
@@ -315,17 +313,17 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 gap-6">
             {surveys.length === 0 ? (
               <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                <h3 className="text-lg font-medium mb-2">{t('dashboard.noSurveys')}</h3>
-                <p className="text-muted-foreground mb-4">{t('dashboard.noSurveysDescription')}</p>
+                <h3 className="text-lg font-medium mb-2">No surveys created yet</h3>
+                <p className="text-muted-foreground mb-4">Create your first survey or use a template to get started</p>
                 <div className="flex justify-center gap-4">
                   <Button 
                     variant="outline" 
                     onClick={() => navigate("/templates")}
                   >
-                    {t('template.useTemplate')}
+                    Use Template
                   </Button>
                   <Button onClick={() => navigate("/create-survey")}>
-                    {t('survey.create')}
+                    Create Survey
                   </Button>
                 </div>
               </div>
@@ -341,17 +339,17 @@ const Dashboard = () => {
                     <CardHeader>
                       <CardTitle>{survey.restaurant_name}</CardTitle>
                       <CardDescription>
-                        {t('dashboard.createdOn')} {new Date(survey.created_at).toLocaleDateString()}
+                        Created on {new Date(survey.created_at).toLocaleDateString()}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                          <h4 className="text-sm font-medium mb-1">{t('dashboard.responses')}</h4>
+                          <h4 className="text-sm font-medium mb-1">Responses</h4>
                           <p className="text-2xl font-bold">{surveySubs.length}</p>
                         </div>
                         <div>
-                          <h4 className="text-sm font-medium mb-1">{t('dashboard.averageRating')}</h4>
+                          <h4 className="text-sm font-medium mb-1">Average Rating</h4>
                           <div className="flex items-center">
                             <p className="text-2xl font-bold">{avgRating.toFixed(1)}</p>
                             <div className="ml-2 flex">
@@ -371,14 +369,14 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div>
-                          <h4 className="text-sm font-medium mb-1">{t('dashboard.googleMapsUrl')}</h4>
+                          <h4 className="text-sm font-medium mb-1">Google Maps URL</h4>
                           <a 
                             href={survey.google_maps_url} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-sm text-blue-500 hover:underline inline-flex items-center"
                           >
-                            {t('dashboard.viewLink')} <ArrowUpRight className="h-3 w-3 ml-1" />
+                            View link <ArrowUpRight className="h-3 w-3 ml-1" />
                           </a>
                         </div>
                       </div>
@@ -386,7 +384,7 @@ const Dashboard = () => {
                     <CardFooter className="flex flex-wrap gap-2">
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => navigate(`/survey/${survey.id}`)}>
-                          {t('dashboard.viewForm')}
+                          View Form
                         </Button>
                         <Button 
                           variant="outline" 
@@ -395,7 +393,7 @@ const Dashboard = () => {
                           onClick={() => handleDeleteSurvey(survey.id)}
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
-                          {t('common.delete')}
+                          Delete
                         </Button>
                       </div>
                       <div className="flex gap-2">
@@ -405,10 +403,10 @@ const Dashboard = () => {
                           onClick={() => navigate(`/survey/${survey.id}/results`)}
                         >
                           <BarChart2 className="h-4 w-4 mr-1" />
-                          {t('dashboard.analytics')}
+                          Analytics
                         </Button>
                         <Button variant="default" size="sm" onClick={() => navigate(`/survey/${survey.id}/share`)}>
-                          {t('common.share')}
+                          Share Survey
                         </Button>
                       </div>
                     </CardFooter>
@@ -424,15 +422,15 @@ const Dashboard = () => {
             {submissions.length === 0 ? (
               <Card className="col-span-full">
                 <CardHeader>
-                  <CardTitle>{t('dashboard.noAnalyticsAvailable')}</CardTitle>
-                  <CardDescription>{t('dashboard.analyticsWillAppear')}</CardDescription>
+                  <CardTitle>No Analytics Available</CardTitle>
+                  <CardDescription>Analytics will appear here after you receive feedback</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center py-8">
                   <p className="text-muted-foreground mb-4">
-                    {t('dashboard.shareToCollect')}
+                    Share your survey with customers to start collecting feedback
                   </p>
                   <Button variant="outline" onClick={() => setActiveTab("surveys")}>
-                    {t('dashboard.viewSurveys')}
+                    View Surveys
                   </Button>
                 </CardContent>
               </Card>
@@ -441,8 +439,8 @@ const Dashboard = () => {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div>
-                      <CardTitle>{t('dashboard.ratingDistribution')}</CardTitle>
-                      <CardDescription>{t('dashboard.ratingDescription')}</CardDescription>
+                      <CardTitle>Rating Distribution</CardTitle>
+                      <CardDescription>How customers are rating your business</CardDescription>
                     </div>
                     <PieChartIcon className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
@@ -473,8 +471,8 @@ const Dashboard = () => {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div>
-                      <CardTitle>{t('dashboard.surveyPerformance')}</CardTitle>
-                      <CardDescription>{t('dashboard.surveyComparison')}</CardDescription>
+                      <CardTitle>Survey Performance</CardTitle>
+                      <CardDescription>Comparison of your surveys</CardDescription>
                     </div>
                     <BarChartIcon className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
@@ -486,14 +484,14 @@ const Dashboard = () => {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="submissions" fill="#8884d8" name={t('dashboard.submissions')} />
-                        <Bar dataKey="averageRating" fill="#82ca9d" name={t('dashboard.avgRating')} />
+                        <Bar dataKey="submissions" fill="#8884d8" name="Submissions" />
+                        <Bar dataKey="averageRating" fill="#82ca9d" name="Avg. Rating" />
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
                   <CardFooter>
                     <p className="text-xs text-muted-foreground">
-                      {t('dashboard.clickAnalytics')}
+                      Click on "Analytics" button on any survey card to see detailed survey analytics
                     </p>
                   </CardFooter>
                 </Card>
@@ -506,13 +504,14 @@ const Dashboard = () => {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure you want to delete this survey?</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('survey.deleteWarning')}
+              This action cannot be undone. This will permanently delete the survey and all of its data, 
+              including questions and submissions.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDeleteSurvey}
               disabled={isDeleting}
@@ -521,10 +520,10 @@ const Dashboard = () => {
               {isDeleting ? (
                 <>
                   <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                  {t('common.deleting')}
+                  Deleting...
                 </>
               ) : (
-                t('common.delete')
+                "Delete Survey"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

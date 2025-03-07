@@ -54,11 +54,6 @@ const Pricing = () => {
     }
   ]
 
-  // Helper function to interpolate variables in translation strings
-  const interpolate = (text: string, variables: Record<string, any>) => {
-    return text.replace(/\${(\w+)}/g, (_, key) => variables[key] || '');
-  }
-
   return (
     <section id="pricing" className="py-24">
       <div className="container mx-auto px-6">
@@ -113,7 +108,7 @@ const Pricing = () => {
                   </p>
                   {annual && plan.monthly > 0 && (
                     <p className="text-sm text-green-600">
-                      {interpolate(t('pricing.saveYear'), { amount: (plan.monthly - plan.annual) * 12 })}
+                      {t('pricing.saveYear', { amount: (plan.monthly - plan.annual) * 12 })}
                     </p>
                   )}
                 </div>
