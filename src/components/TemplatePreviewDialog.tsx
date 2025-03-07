@@ -9,6 +9,7 @@ import { Eye, Loader2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { useLanguage } from "@/lib/languageContext";
 
 interface TemplatePreviewDialogProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
   const [template, setTemplate] = useState<any | null>(null);
   const [questions, setQuestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { language, t } = useLanguage();
 
   useEffect(() => {
     if (isOpen && templateId) {
@@ -28,7 +30,7 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
       setTemplate(null);
       setQuestions([]);
     }
-  }, [isOpen, templateId]);
+  }, [isOpen, templateId, language]);
 
   const fetchTemplateData = async (id: string) => {
     setIsLoading(true);
@@ -53,6 +55,14 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
       
       // Process questions to ensure they are rendered properly
       const processedQuestions = questionsData?.map(q => {
+        // Translate question text based on language
+        let questionText = q.text;
+        
+        // If language is Greek, translate the question text
+        if (language === 'el') {
+          questionText = translateQuestionText(questionText, q.type);
+        }
+        
         // If the question has a type that's not multiple-choice or rating,
         // convert it to one of those types for preview purposes
         let questionType = q.type;
@@ -62,14 +72,22 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
           // Default to multiple-choice with standard options if no options are provided
           if (!options || options.length === 0) {
             questionType = QUESTION_TYPES.MULTIPLE_CHOICE;
-            options = ['Excellent', 'Good', 'Average', 'Below average', 'Poor'];
+            options = language === 'el' 
+              ? ['Εξαιρετικό', 'Καλό', 'Μέτριο', 'Κάτω του μετρίου', 'Κακό'] 
+              : ['Excellent', 'Good', 'Average', 'Below average', 'Poor'];
           } else {
             questionType = QUESTION_TYPES.MULTIPLE_CHOICE;
           }
         }
         
+        // Translate options if language is Greek and we have multiple-choice
+        if (language === 'el' && questionType === QUESTION_TYPES.MULTIPLE_CHOICE && options.length > 0) {
+          options = translateOptions(options);
+        }
+        
         return {
           ...q,
+          text: questionText,
           type: questionType,
           options: options
         };
@@ -82,6 +100,62 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to translate question text
+  const translateQuestionText = (text: string, type: string): string => {
+    // Common questions with translations
+    const translations: Record<string, string> = {
+      "How would you rate your overall experience?": "Πώς θα βαθμολογούσατε τη συνολική σας εμπειρία;",
+      "How satisfied were you with our service?": "Πόσο ικανοποιημένοι ήσασταν με την εξυπηρέτησή μας;",
+      "How would you rate the quality of our food?": "Πώς θα βαθμολογούσατε την ποιότητα του φαγητού μας;",
+      "How likely are you to recommend us to a friend?": "Πόσο πιθανό είναι να μας συστήσετε σε έναν φίλο;",
+      "How would you rate the cleanliness of our restaurant?": "Πώς θα βαθμολογούσατε την καθαριότητα του εστιατορίου μας;",
+      "How was the speed of service?": "Πώς ήταν η ταχύτητα εξυπηρέτησης;",
+      "Rate the friendliness of our staff": "Βαθμολογήστε τη φιλικότητα του προσωπικού μας",
+      "What did you enjoy most about your visit?": "Τι σας άρεσε περισσότερο από την επίσκεψή σας;",
+      "Which aspects of our service could be improved?": "Ποιες πτυχές της υπηρεσίας μας θα μπορούσαν να βελτιωθούν;",
+      "Do you have any additional comments or suggestions?": "Έχετε πρόσθετα σχόλια ή προτάσεις;",
+      "What brought you to our restaurant today?": "Τι σας έφερε στο εστιατόριό μας σήμερα;",
+      "How did you hear about us?": "Πώς μάθατε για εμάς;",
+      "Would you visit us again?": "Θα μας επισκεπτόσασταν ξανά;",
+      "How would you rate the value for money?": "Πώς θα βαθμολογούσατε τη σχέση ποιότητας/τιμής;",
+      "How would you rate the ambiance of our restaurant?": "Πώς θα βαθμολογούσατε την ατμόσφαιρα του εστιατορίου μας;",
+      "How was your haircut experience?": "Πώς ήταν η εμπειρία του κουρέματός σας;",
+      "Rate the quality of our coffee": "Βαθμολογήστε την ποιότητα του καφέ μας",
+      "How was your stay at our hotel?": "Πώς ήταν η διαμονή σας στο ξενοδοχείο μας;",
+    };
+    
+    return translations[text] || text;
+  };
+
+  // Helper function to translate multiple choice options
+  const translateOptions = (options: string[]): string[] => {
+    const optionTranslations: Record<string, string> = {
+      "Excellent": "Εξαιρετικό",
+      "Good": "Καλό",
+      "Average": "Μέτριο",
+      "Below average": "Κάτω του μετρίου",
+      "Poor": "Κακό",
+      "Food quality": "Ποιότητα φαγητού",
+      "Service": "Εξυπηρέτηση",
+      "Ambiance": "Ατμόσφαιρα",
+      "Value for money": "Σχέση ποιότητας/τιμής",
+      "Cleanliness": "Καθαριότητα",
+      "Location": "Τοποθεσία",
+      "Staff friendliness": "Φιλικότητα προσωπικού",
+      "Yes": "Ναι",
+      "No": "Όχι",
+      "Maybe": "Ίσως",
+      "Friend recommendation": "Σύσταση φίλου",
+      "Online search": "Διαδικτυακή αναζήτηση",
+      "Social media": "Μέσα κοινωνικής δικτύωσης",
+      "Advertisement": "Διαφήμιση",
+      "Walking by": "Τυχαία περαστικός/ή",
+      "Other": "Άλλο"
+    };
+    
+    return options.map(option => optionTranslations[option] || option);
   };
 
   const renderQuestionPreview = (question: any) => {
@@ -104,7 +178,9 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
       // Ensure we have options to display
       const options = question.options && question.options.length > 0 
         ? question.options 
-        : ['Excellent', 'Good', 'Average', 'Below average', 'Poor'];
+        : (language === 'el' 
+          ? ['Εξαιρετικό', 'Καλό', 'Μέτριο', 'Κάτω του μετρίου', 'Κακό'] 
+          : ['Excellent', 'Good', 'Average', 'Below average', 'Poor']);
         
       return (
         <RadioGroup defaultValue={options[0]}>
@@ -119,13 +195,28 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
     }
   };
 
+  const getTranslatedTemplateName = () => {
+    if (!template || language !== 'el') return template?.name || "Template Preview";
+    
+    const templateNameTranslations: Record<string, string> = {
+      "Restaurant Customer Satisfaction": "Ικανοποίηση Πελατών Εστιατορίου",
+      "Coffee Shop Experience": "Εμπειρία Καφετέριας",
+      "Haircut Satisfaction Survey": "Έρευνα Ικανοποίησης Κουρέματος",
+      "Hotel Stay Experience": "Εμπειρία Διαμονής σε Ξενοδοχείο"
+    };
+    
+    return templateNameTranslations[template.name] || template.name;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{template?.name || "Template Preview"}</DialogTitle>
+          <DialogTitle>{getTranslatedTemplateName()}</DialogTitle>
           <DialogDescription>
-            Preview how this survey template will look when used
+            {language === 'el' 
+              ? "Προεπισκόπηση του πώς θα εμφανίζεται αυτό το πρότυπο έρευνας όταν χρησιμοποιηθεί" 
+              : "Preview how this survey template will look when used"}
           </DialogDescription>
         </DialogHeader>
         
@@ -136,7 +227,11 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
         ) : (
           <div className="space-y-6 py-4">
             {questions.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No questions found in this template.</p>
+              <p className="text-center text-muted-foreground py-8">
+                {language === 'el'
+                  ? "Δεν βρέθηκαν ερωτήσεις σε αυτό το πρότυπο."
+                  : "No questions found in this template."}
+              </p>
             ) : (
               <div className="space-y-6">
                 {questions.map((question) => (
@@ -151,7 +246,9 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
             )}
             
             <div className="flex justify-end pt-4">
-              <Button onClick={onClose}>Close Preview</Button>
+              <Button onClick={onClose}>
+                {language === 'el' ? "Κλείσιμο Προεπισκόπησης" : "Close Preview"}
+              </Button>
             </div>
           </div>
         )}

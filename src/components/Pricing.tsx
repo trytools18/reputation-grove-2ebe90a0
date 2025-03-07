@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Check, X } from 'lucide-react';
 import { useLanguage } from '@/lib/languageContext';
 import { cn } from '@/lib/utils';
 
-interface PricingCardProps {
+export interface PricingCardProps {
   tier: string;
   price: number;
   description: string;
@@ -35,9 +36,9 @@ const PricingCard: React.FC<PricingCardProps> = ({
       <h3 className="text-2xl font-semibold mb-2">{t(`pricing.${tier}.title`)}</h3>
       <div className="text-5xl font-bold mb-4">
         ${price}
-        <span className="text-sm text-gray-500">/month</span>
+        <span className="text-sm text-gray-500">/{t('pricing.mo')}</span>
       </div>
-      <p className="text-gray-600 mb-6">{t(`pricing.${tier}.description`)}</p>
+      <p className="text-gray-600 mb-6">{description}</p>
       <ul className="mb-6">
         {features.map((feature, index) => (
           <li key={index} className="flex items-center mb-2">
@@ -46,12 +47,12 @@ const PricingCard: React.FC<PricingCardProps> = ({
             ) : (
               <X className="h-4 w-4 mr-2 text-red-500" />
             )}
-            <span>{t(`pricing.features.${feature.name}`)}</span>
+            <span>{t(`pricing.${feature.name}`)}</span>
           </li>
         ))}
       </ul>
       <button className="bg-primary text-primary-foreground font-semibold py-2 px-4 rounded hover:bg-primary-dark transition-colors w-full">
-        {t('pricing.choosePlan')}
+        {t('pricing.getStarted')}
       </button>
     </div>
   );
