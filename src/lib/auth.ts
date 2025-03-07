@@ -1,12 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
-import { useLanguage } from '@/lib/languageContext'; // Add this import
 
 export type AuthSession = {
   user: User | null;
   isLoading: boolean;
-  error: string | null; // Changed to string for translation keys
+  error: Error | null;
 };
 
 export type SignUpData = {
@@ -34,10 +33,9 @@ export type UserProfile = {
 };
 
 export function useSession(): AuthSession {
-  const { t } = useLanguage(); // Add translation hook
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     async function getSession() {
@@ -53,7 +51,7 @@ export function useSession(): AuthSession {
           setUser(session.user);
         }
       } catch (error) {
-        setError(t('auth.errors.generic')); // Use translation key
+        setError(error as Error);
       } finally {
         setIsLoading(false);
       }
@@ -72,16 +70,15 @@ export function useSession(): AuthSession {
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, [t]);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return { user, isLoading, error };
 }
 
-// Updated functions with translated errors
 export async function signUp({ email, password, businessName, phoneNumber }: SignUpData) {
-  const { t } = useLanguage();
-  
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -94,40 +91,35 @@ export async function signUp({ email, password, businessName, phoneNumber }: Sig
   });
 
   if (error) {
-    throw new Error(t(`auth.errors.${error.message}`) || error.message);
+    throw error;
   }
 
   return data;
 }
 
 export async function signIn({ email, password }: SignInData) {
-  const { t } = useLanguage();
-  
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
-    throw new Error(t(`auth.errors.${error.message}`) || error.message);
+    throw error;
   }
 
   return data;
 }
 
 export async function signOut() {
-  const { t } = useLanguage();
-  
   const { error } = await supabase.auth.signOut();
   if (error) {
-    throw new Error(t('auth.errors.signOut'));
+    console.error("Error signing out:", error);
+    throw error;
   }
   return true;
 }
 
 export async function getUserProfile(): Promise<UserProfile | null> {
-  const { t } = useLanguage();
-  
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
@@ -141,19 +133,18 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     .single();
 
   if (error) {
-    throw new Error(t('auth.errors.fetchProfile'));
+    console.error("Error fetching user profile:", error);
+    throw error;
   }
 
   return data as UserProfile;
 }
 
 export async function updateUserProfile(updates: any) {
-  const { t } = useLanguage();
-  
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
-    throw new Error(t('auth.errors.notAuthenticated'));
+    throw new Error("Not authenticated");
   }
 
   const { data, error } = await supabase
@@ -164,17 +155,17 @@ export async function updateUserProfile(updates: any) {
     .single();
 
   if (error) {
-    throw new Error(t('auth.errors.updateProfile'));
+    console.error("Error updating user profile:", error);
+    throw error;
   }
 
   return data;
 }
 
 export function useUserProfile() {
-  const { t } = useLanguage();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const { user } = useSession();
 
   useEffect(() => {
@@ -190,31 +181,27 @@ export function useUserProfile() {
         const profileData = await getUserProfile();
         setProfile(profileData);
       } catch (err) {
-        setError(t('auth.errors.fetchProfile'));
+        console.error("Error fetching user profile:", err);
+        setError(err as Error);
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchUserProfile();
-  }, [user, t]);
+  }, [user]);
 
-  return { 
-    profile, 
-    isLoading, 
-    error, 
-    refetch: async () => {
-      if (user) {
-        try {
-          setIsLoading(true);
-          const profileData = await getUserProfile();
-          setProfile(profileData);
-        } catch (err) {
-          setError(t('auth.errors.fetchProfile'));
-        } finally {
-          setIsLoading(false);
-        }
+  return { profile, isLoading, error, refetch: async () => {
+    if (user) {
+      try {
+        setIsLoading(true);
+        const profileData = await getUserProfile();
+        setProfile(profileData);
+      } catch (err) {
+        setError(err as Error);
+      } finally {
+        setIsLoading(false);
       }
     }
-  };
+  }};
 }
