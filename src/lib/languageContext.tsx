@@ -150,7 +150,6 @@ export const translations = {
     'dashboard.totalSurveys': 'Total Surveys',
     'dashboard.surveysCreated': 'Surveys created to date',
     'dashboard.totalResponses': 'Total Responses',
-    'dashboard.responses': 'Total Responses',
     'dashboard.responsesCollected': 'Responses collected to date',
     'dashboard.averageRating': 'Average Rating',
     'dashboard.avgRatingAcross': 'Average rating across all surveys',
@@ -259,7 +258,7 @@ export const translations = {
     // Survey Results
     'surveyResults.title': 'Survey Results',
     'surveyResults.overview': 'Overview',
-    'dashboard.responses': 'Responses',
+    'surveyResults.responses': 'Responses',
     'surveyResults.noResponses': 'No responses yet',
     'surveyResults.waitingForResponses': 'Waiting for your first response',
     'surveyResults.shareToGetResponses': 'Share your survey to start collecting responses',
