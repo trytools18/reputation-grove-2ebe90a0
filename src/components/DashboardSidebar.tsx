@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { signOut, useSession, useUserProfile } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { BarChart, ChevronLeft, ChevronRight, Globe, Home, LogOut, PlusCircle, Settings, User } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, LogOut, PlusCircle, User } from "lucide-react";
 import { useLanguage } from "@/lib/languageContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 
@@ -41,7 +41,6 @@ const DashboardSidebar = () => {
 
   const navItems = [
     { icon: Home, label: t('nav.dashboard'), path: "/dashboard" },
-    { icon: BarChart, label: t('nav.analytics'), path: "/dashboard?tab=analytics" },
     { icon: PlusCircle, label: t('nav.createSurvey'), path: "/create-survey" },
     { icon: User, label: t('nav.account'), path: "/account-settings" },
   ];
