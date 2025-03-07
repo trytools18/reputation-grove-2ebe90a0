@@ -1,74 +1,64 @@
-
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn, signUp } from "@/lib/auth";
+import React, { useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
+import { useSession, signIn, signUp } from '@/lib/auth';
 import { useLanguage } from '@/lib/languageContext';
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [isLoading, setIsLoading] = useState(false);
+
+  const { t } = useLanguage();
+  const { user } = useSession();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
 
-  // Define the login form schema
-  const loginFormSchema = z.object({
-    email: z.string().email(t('auth.email') + " " + t('common.required')),
-    password: z.string().min(6, t('auth.password') + " " + t('common.required')),
-  });
-  
-  // Define the signup form schema
-  const signupFormSchema = z.object({
-    email: z.string().email(t('auth.email') + " " + t('common.required')),
-    password: z.string().min(6, t('auth.password') + " " + t('common.required')),
-    businessName: z.string().min(2, t('account.businessName') + " " + t('common.required')),
-    phoneNumber: z.string().optional(),
-  });
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
-  // Determine the form schema based on the current mode
-  const formSchema = isLogin ? loginFormSchema : signupFormSchema;
+  const toggleMode = () => {
+    setMode(mode === 'login' ? 'signup' : 'login');
+    setEmail('');
+    setPassword('');
+    setBusinessName('');
+  };
 
-  // Setup form with React Hook Form
-  const { register, handleSubmit, formState: { errors } } = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: isLogin 
-      ? { email: "", password: "" } 
-      : { email: "", password: "", businessName: "", phoneNumber: "" },
-  });
-
-  const onSubmit = async (data: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
+
     try {
-      if (isLogin) {
-        await signIn({ email: data.email, password: data.password });
-        navigate("/dashboard");
+      if (mode === 'login') {
+        await signIn({ email, password });
+        toast({
+          title: t('auth.loginSuccess'),
+          description: t('auth.welcomeBack'),
+        });
       } else {
-        await signUp({
-          email: data.email,
-          password: data.password,
-          businessName: data.businessName,
-          phoneNumber: data.phoneNumber,
+        await signUp({ 
+          email, 
+          password, 
+          businessName
         });
         toast({
-          title: t('app.name'),
-          description: t('auth.loggedOut'),
+          title: t('auth.signupSuccess'),
+          description: t('auth.accountCreated'),
         });
-        navigate("/dashboard");
       }
+      navigate('/dashboard');
     } catch (error: any) {
-      console.error("Authentication error:", error);
       toast({
-        title: t('common.error'),
+        title: mode === 'login' ? t('auth.loginError') : t('auth.signupError'),
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -76,93 +66,80 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="absolute top-4 right-4">
-        <LanguageSwitcher />
-      </div>
-      <div className="w-full max-w-md space-y-6 rounded-lg border bg-card p-6 shadow-md">
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">
-            {isLogin ? t('auth.loginTitle') : t('auth.signupTitle')}
-          </h1>
-          <p className="text-muted-foreground">
-            {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}{' '}
-            <button 
-              onClick={() => setIsLogin(!isLogin)} 
-              className="text-primary underline-offset-4 hover:underline"
-            >
-              {isLogin ? t('auth.signUp') : t('auth.logIn')}
-            </button>
-          </p>
-        </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">{t('auth.email')}</Label>
-            <Input
-              id="email"
-              placeholder="email@example.com"
-              type="email"
-              autoCapitalize="none"
-              autoComplete="email"
-              autoCorrect="off"
-              {...register("email")}
-            />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">{t('auth.password')}</Label>
-              <Button variant="link" className="h-auto p-0 text-sm" type="button">
-                {t('auth.forgotPassword')}
-              </Button>
+    <div className="grid h-screen place-items-center">
+      <Card className="w-[350px]">
+        <CardHeader>
+          <CardTitle>{t('auth.welcome')}</CardTitle>
+          <CardDescription>
+            {mode === 'login' ? t('auth.loginTitle') : t('auth.signupTitle')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-2">
+              <Label htmlFor="email">{t('auth.email')}</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="mail@example.com"
+                required
+              />
             </div>
-            <Input
-              id="password"
-              type="password"
-              autoComplete={isLogin ? "current-password" : "new-password"}
-              {...register("password")}
-            />
-            {errors.password && (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
-            )}
-          </div>
-          
-          {!isLogin && (
-            <>
-              <div className="space-y-2">
+            <div className="grid gap-2">
+              <Label htmlFor="password">{t('auth.password')}</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            {mode === 'signup' && (
+              <div className="grid gap-2">
                 <Label htmlFor="businessName">{t('account.businessName')}</Label>
                 <Input
                   id="businessName"
-                  placeholder={t('template.enterBusinessName', { type: t('category.business') })}
                   type="text"
-                  {...register("businessName")}
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  placeholder={t('account.businessName')}
+                  required
                 />
-                {errors.businessName && (
-                  <p className="text-sm text-destructive">{errors.businessName.message}</p>
-                )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="phoneNumber">{t('account.phoneNumber') || 'Phone Number'}</Label>
-                <Input
-                  id="phoneNumber"
-                  placeholder="+1 234 567 8900"
-                  type="tel"
-                  {...register("phoneNumber")}
-                />
-                {errors.phoneNumber && (
-                  <p className="text-sm text-destructive">{errors.phoneNumber.message}</p>
-                )}
-              </div>
-            </>
+            )}
+            <Button disabled={isLoading} className="w-full mt-4" type="submit">
+              {isLoading ? t('common.loading') : (mode === 'login' ? t('auth.logIn') : t('auth.signUp'))}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex items-center justify-between">
+          <small>
+            {mode === 'login' ? (
+              <>
+                {t('auth.noAccount')}
+                <Button variant="link" onClick={toggleMode}>
+                  {t('auth.signUp')}
+                </Button>
+              </>
+            ) : (
+              <>
+                {t('auth.hasAccount')}
+                <Button variant="link" onClick={toggleMode}>
+                  {t('auth.logIn')}
+                </Button>
+              </>
+            )}
+          </small>
+          {mode === 'login' && (
+            <Button variant="link">
+              {t('auth.forgotPassword')}
+            </Button>
           )}
-          
-          <Button className="w-full" type="submit" disabled={isLoading}>
-            {isLoading ? t('common.loading') : isLogin ? t('auth.logIn') : t('auth.signUp')}
-          </Button>
-        </form>
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 };
