@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -199,7 +200,7 @@ const Dashboard = () => {
               <CardContent>
                 <div className="text-3xl font-bold">{submissions.length}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {submissions.length === 0 ? t('surveyView.noQuestions') : t('dashboard.responsesCollected')}
+                  {submissions.length === 0 ? t('dashboard.noResponses') : t('dashboard.responsesCollected')}
                 </p>
               </CardContent>
             </Card>
@@ -211,10 +212,10 @@ const Dashboard = () => {
                 <div className="text-3xl font-bold">
                   {submissions.length > 0 
                     ? (submissions.reduce((sum, sub) => sum + sub.average_rating, 0) / submissions.length).toFixed(1)
-                    : t('surveyResults.noResponses')}
+                    : t('dashboard.noData')}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {submissions.length === 0 ? t('surveyView.noQuestions') : t('dashboard.avgRatingAcross')}
+                  {submissions.length === 0 ? t('dashboard.noResponses') : t('dashboard.avgRatingAcross')}
                 </p>
               </CardContent>
             </Card>
@@ -240,13 +241,13 @@ const Dashboard = () => {
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="md:col-span-2">
                 <CardHeader>
-                  <CardTitle>Recent Feedback</CardTitle>
-                  <CardDescription>The latest feedback from your customers</CardDescription>
+                  <CardTitle>{t('dashboard.recentFeedback')}</CardTitle>
+                  <CardDescription>{t('dashboard.latestFeedback')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {submissions.length === 0 ? (
                     <div className="text-center py-8 border border-dashed rounded">
-                      <p className="text-muted-foreground">No feedback received yet</p>
+                      <p className="text-muted-foreground">{t('dashboard.noFeedback')}</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -256,7 +257,7 @@ const Dashboard = () => {
                           <div key={index} className="border rounded-md p-4">
                             <div className="flex justify-between items-start">
                               <div>
-                                <h4 className="font-medium">{survey?.restaurant_name || "Survey"}</h4>
+                                <h4 className="font-medium">{survey?.restaurant_name || t('dashboard.survey')}</h4>
                                 <div className="flex mt-1">
                                   {Array.from({ length: 5 }).map((_, i) => (
                                     <svg
@@ -276,11 +277,11 @@ const Dashboard = () => {
                                 </div>
                               </div>
                               <Badge variant={submission.average_rating >= 4 ? "success" : "default"}>
-                                {submission.average_rating >= 4 ? "Positive" : "Neutral"}
+                                {submission.average_rating >= 4 ? t('dashboard.positive') : t('dashboard.neutral')}
                               </Badge>
                             </div>
                             <p className="text-sm mt-2 text-muted-foreground">
-                              Submitted {new Date(submission.created_at).toLocaleDateString()}
+                              {t('dashboard.submitted')} {new Date(submission.created_at).toLocaleDateString()}
                             </p>
                             <div className="mt-2">
                               <Button 
@@ -289,7 +290,7 @@ const Dashboard = () => {
                                 className="text-sm text-primary p-0 h-auto"
                                 onClick={() => navigate(`/survey/${submission.form_id}/results`)}
                               >
-                                View details <ArrowUpRight className="h-3 w-3 ml-1" />
+                                {t('dashboard.viewDetails')} <ArrowUpRight className="h-3 w-3 ml-1" />
                               </Button>
                             </div>
                           </div>
@@ -301,7 +302,7 @@ const Dashboard = () => {
                 {submissions.length > 0 && (
                   <CardFooter>
                     <Button variant="outline" className="w-full" onClick={() => setActiveTab("analytics")}>
-                      View All Analytics
+                      {t('dashboard.viewAllAnalytics')}
                     </Button>
                   </CardFooter>
                 )}
@@ -340,7 +341,7 @@ const Dashboard = () => {
                     <CardHeader>
                       <CardTitle>{survey.restaurant_name}</CardTitle>
                       <CardDescription>
-                        Created on {new Date(survey.created_at).toLocaleDateString()}
+                        {t('dashboard.createdOn')} {new Date(survey.created_at).toLocaleDateString()}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -423,12 +424,12 @@ const Dashboard = () => {
             {submissions.length === 0 ? (
               <Card className="col-span-full">
                 <CardHeader>
-                  <CardTitle>No Analytics Available</CardTitle>
-                  <CardDescription>Analytics will appear here after you receive feedback</CardDescription>
+                  <CardTitle>{t('dashboard.noAnalyticsAvailable')}</CardTitle>
+                  <CardDescription>{t('dashboard.analyticsWillAppear')}</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center py-8">
                   <p className="text-muted-foreground mb-4">
-                    Share your survey with customers to start collecting feedback
+                    {t('dashboard.shareToCollect')}
                   </p>
                   <Button variant="outline" onClick={() => setActiveTab("surveys")}>
                     {t('dashboard.viewSurveys')}
@@ -440,8 +441,8 @@ const Dashboard = () => {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div>
-                      <CardTitle>Rating Distribution</CardTitle>
-                      <CardDescription>How customers are rating your business</CardDescription>
+                      <CardTitle>{t('dashboard.ratingDistribution')}</CardTitle>
+                      <CardDescription>{t('dashboard.ratingDescription')}</CardDescription>
                     </div>
                     <PieChartIcon className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
@@ -472,8 +473,8 @@ const Dashboard = () => {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div>
-                      <CardTitle>Survey Performance</CardTitle>
-                      <CardDescription>Comparison of your surveys</CardDescription>
+                      <CardTitle>{t('dashboard.surveyPerformance')}</CardTitle>
+                      <CardDescription>{t('dashboard.surveyComparison')}</CardDescription>
                     </div>
                     <BarChartIcon className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
@@ -485,14 +486,14 @@ const Dashboard = () => {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="submissions" fill="#8884d8" name="Submissions" />
-                        <Bar dataKey="averageRating" fill="#82ca9d" name="Avg. Rating" />
+                        <Bar dataKey="submissions" fill="#8884d8" name={t('dashboard.submissions')} />
+                        <Bar dataKey="averageRating" fill="#82ca9d" name={t('dashboard.avgRating')} />
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
                   <CardFooter>
                     <p className="text-xs text-muted-foreground">
-                      Click on "Analytics" button on any survey card to see detailed survey analytics
+                      {t('dashboard.clickAnalytics')}
                     </p>
                   </CardFooter>
                 </Card>

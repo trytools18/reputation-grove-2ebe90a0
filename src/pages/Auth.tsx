@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -105,7 +106,7 @@ const Auth = () => {
                   type="text"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder={t('account.businessName')}
+                  placeholder={t('account.businessNamePlaceholder')}
                   required
                 />
               </div>
