@@ -150,6 +150,7 @@ export const translations = {
     'dashboard.totalSurveys': 'Total Surveys',
     'dashboard.surveysCreated': 'Surveys created to date',
     'dashboard.totalResponses': 'Total Responses',
+    'dashboard.responses': 'Total Responses',
     'dashboard.responsesCollected': 'Responses collected to date',
     'dashboard.averageRating': 'Average Rating',
     'dashboard.avgRatingAcross': 'Average rating across all surveys',
