@@ -408,7 +408,7 @@ const Dashboard = () => {
                           {t('dashboard.analytics')}
                         </Button>
                         <Button variant="default" size="sm" onClick={() => navigate(`/survey/${survey.id}/share`)}>
-                          {t('dashboard.shareSurvey')}
+                          {t('common.share')}
                         </Button>
                       </div>
                     </CardFooter>

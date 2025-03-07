@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -18,14 +17,12 @@ import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
 import { LanguageProvider } from "./lib/languageContext";
 
-// Create a loading component for suspense fallback
 const LoadingFallback = () => (
   <div className="h-screen flex items-center justify-center">
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
   </div>
 );
 
-// Protected route wrapper component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useSession();
   
@@ -40,7 +37,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Dashboard route wrapper component
 const DashboardRoute = ({ children, showBackButton = false }: { children: React.ReactNode, showBackButton?: boolean }) => {
   return (
     <ProtectedRoute>
@@ -63,14 +59,12 @@ const App = () => {
       <Router>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Auth />} />
-            <Route path="/signup" element={<Auth isSignUp />} />
-            <Route path="/auth" element={<Auth />} /> {/* Add this route to handle /auth links */}
+            <Route path="/signup" element={<Auth />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="/survey/:id" element={<SurveyView />} />
             
-            {/* Protected dashboard routes */}
             <Route path="/dashboard" element={
               <DashboardRoute>
                 <Dashboard />
@@ -112,7 +106,6 @@ const App = () => {
               </DashboardRoute>
             } />
             
-            {/* Fallback route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

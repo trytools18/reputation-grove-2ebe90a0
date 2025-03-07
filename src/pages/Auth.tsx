@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,8 +8,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useSession, signIn, signUp } from '@/lib/auth';
 import { useLanguage } from '@/lib/languageContext';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 const Auth = () => {
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [businessName, setBusinessName] = useState('');
@@ -21,6 +23,15 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  useEffect(() => {
+    // Set mode based on path
+    if (location.pathname === '/signup') {
+      setMode('signup');
+    } else {
+      setMode('login');
+    }
+  }, [location.pathname]);
+
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -30,6 +41,7 @@ const Auth = () => {
     setEmail('');
     setPassword('');
     setBusinessName('');
+    navigate(mode === 'login' ? '/signup' : '/login');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,7 +79,10 @@ const Auth = () => {
   };
 
   return (
-    <div className="grid h-screen place-items-center">
+    <div className="grid h-screen place-items-center relative">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher variant="ghost" />
+      </div>
       <Card className="w-[350px]">
         <CardHeader>
           <CardTitle>{t('auth.welcome')}</CardTitle>
