@@ -55,10 +55,12 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
       
       // Process questions to ensure they are rendered properly
       const processedQuestions = questionsData?.map(q => {
-        // If language is Greek, translate the question text
+        // Translate question text based on language
         let questionText = q.text;
+        
+        // If language is Greek, translate the question text
         if (language === 'el') {
-          questionText = translateQuestionText(questionText);
+          questionText = translateQuestionText(questionText, q.type);
         }
         
         // If the question has a type that's not multiple-choice or rating,
@@ -101,7 +103,7 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
   };
 
   // Helper function to translate question text
-  const translateQuestionText = (text: string): string => {
+  const translateQuestionText = (text: string, type: string): string => {
     // Common questions with translations
     const translations: Record<string, string> = {
       "How would you rate your overall experience?": "Πώς θα βαθμολογούσατε τη συνολική σας εμπειρία;",
@@ -122,14 +124,6 @@ const TemplatePreviewDialog = ({ isOpen, onClose, templateId }: TemplatePreviewD
       "How was your haircut experience?": "Πώς ήταν η εμπειρία του κουρέματός σας;",
       "Rate the quality of our coffee": "Βαθμολογήστε την ποιότητα του καφέ μας",
       "How was your stay at our hotel?": "Πώς ήταν η διαμονή σας στο ξενοδοχείο μας;",
-      "How was the quality of your coffee?": "Πώς ήταν η ποιότητα του καφέ σας;",
-      "How was the atmosphere of our coffee shop?": "Πώς ήταν η ατμόσφαιρα της καφετέριας μας;",
-      "How was your barber's attention to detail?": "Πώς ήταν η προσοχή στη λεπτομέρεια του κουρέα σας;",
-      "How would you rate your stylist's skills?": "Πώς θα βαθμολογούσατε τις ικανότητες του στυλίστα σας;",
-      "How clean was our barbershop?": "Πόσο καθαρό ήταν το κουρείο μας;",
-      "How was the check-in process?": "Πώς ήταν η διαδικασία check-in;",
-      "How comfortable was your room?": "Πόσο άνετο ήταν το δωμάτιό σας;",
-      "How would you rate the cleanliness of your room?": "Πώς θα βαθμολογούσατε την καθαριότητα του δωματίου σας;",
     };
     
     return translations[text] || text;
