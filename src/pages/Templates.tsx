@@ -12,7 +12,17 @@ import { useLanguage } from "@/lib/languageContext";
 import TemplatePreviewDialog from "@/components/TemplatePreviewDialog";
 import TemplateUseDialog from "@/components/TemplateUseDialog";
 
-const templates = [
+// Define template interface to avoid recursive type issues
+interface TemplateItem {
+  id: string;
+  type: string;
+  name: string;
+  description: string;
+  longDescription: string;
+  category: string;
+}
+
+const templates: TemplateItem[] = [
   {
     id: "coffee",
     type: "coffee",
@@ -51,12 +61,12 @@ const Templates = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [previewTemplateId, setPreviewTemplateId] = useState<string | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<typeof templates[0] | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isUseOpen, setIsUseOpen] = useState(false);
   const { t, language } = useLanguage();
 
-  const getTranslatedName = (template: any) => {
+  const getTranslatedName = (template: TemplateItem) => {
     if (language === 'el') {
       const nameTranslations: Record<string, string> = {
         "Coffee Shop Experience": "Εμπειρία Καφετέριας",
@@ -69,7 +79,7 @@ const Templates = () => {
     return template.name;
   };
 
-  const getTranslatedDescription = (template: any) => {
+  const getTranslatedDescription = (template: TemplateItem) => {
     if (language === 'el') {
       const descTranslations: Record<string, string> = {
         "A quick survey to gather feedback about your visit": "Μια γρήγορη έρευνα για τη συλλογή σχολίων σχετικά με την επίσκεψή σας",
@@ -82,7 +92,7 @@ const Templates = () => {
     return template.description;
   };
 
-  const getTranslatedLongDescription = (template: any) => {
+  const getTranslatedLongDescription = (template: TemplateItem) => {
     if (language === 'el') {
       const longDescTranslations: Record<string, string> = {
         "A pre-configured template with questions focused on coffee feedback.": "Ένα προδιαμορφωμένο πρότυπο με ερωτήσεις εστιασμένες στα σχόλια για καφέ.",
@@ -118,7 +128,7 @@ const Templates = () => {
     }
   };
   
-  const openUseTemplate = (template: typeof templates[0]) => {
+  const openUseTemplate = (template: TemplateItem) => {
     setSelectedTemplate(template);
     setIsUseOpen(true);
   };
