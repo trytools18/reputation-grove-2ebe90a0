@@ -66,6 +66,7 @@ const Templates = () => {
   const [isUseOpen, setIsUseOpen] = useState(false);
   const { t, language } = useLanguage();
 
+  // Translation functions
   const getTranslatedName = (template: TemplateItem) => {
     if (language === 'el') {
       const nameTranslations: Record<string, string> = {
