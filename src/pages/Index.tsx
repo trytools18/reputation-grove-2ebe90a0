@@ -5,14 +5,14 @@ import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import Features from '@/components/Features';
 import Footer from '@/components/Footer';
-import { useMediaQuery } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import PricingCard from '@/components/Pricing';
 import { Check } from 'lucide-react';
 import { useLanguage } from '@/lib/languageContext';
 
 const Index = () => {
   const navigate = useNavigate();
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useIsMobile();
   const { t } = useLanguage();
 
   // Define pricing tiers
