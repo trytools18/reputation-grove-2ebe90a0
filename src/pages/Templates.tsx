@@ -19,6 +19,7 @@ const templates = [
     name: "Coffee Shop Experience",
     description: "A quick survey to gather feedback about your visit",
     longDescription: "A pre-configured template with questions focused on coffee feedback.",
+    category: "cafe",
   },
   {
     id: "haircut",
@@ -26,6 +27,7 @@ const templates = [
     name: "Haircut Satisfaction Survey",
     description: "A quick survey to gather feedback about haircut and service",
     longDescription: "A pre-configured template with questions focused on barbershop feedback.",
+    category: "barbershop",
   },
   {
     id: "hotel",
@@ -33,6 +35,7 @@ const templates = [
     name: "Hotel Stay Experience",
     description: "A brief survey to gather feedback about guest experience",
     longDescription: "A pre-configured template with questions focused on hotel feedback.",
+    category: "hotel",
   },
   {
     id: "restaurant",
@@ -40,6 +43,7 @@ const templates = [
     name: "Restaurant Customer Satisfaction",
     description: "A short survey to gather feedback about dining experience",
     longDescription: "A pre-configured template with questions focused on restaurant feedback.",
+    category: "restaurant",
   }
 ];
 
@@ -47,7 +51,7 @@ const Templates = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [previewTemplateId, setPreviewTemplateId] = useState<string | null>(null);
-  const [useTemplateId, setUseTemplateId] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<typeof templates[0] | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isUseOpen, setIsUseOpen] = useState(false);
   const { t, language } = useLanguage();
@@ -114,8 +118,8 @@ const Templates = () => {
     }
   };
   
-  const openUseTemplate = (templateId: string) => {
-    setUseTemplateId(templateId);
+  const openUseTemplate = (template: typeof templates[0]) => {
+    setSelectedTemplate(template);
     setIsUseOpen(true);
   };
 
@@ -165,7 +169,7 @@ const Templates = () => {
                 <Button
                   size="sm"
                   className="flex-1"
-                  onClick={() => openUseTemplate(template.id)}
+                  onClick={() => openUseTemplate(template)}
                 >
                   {t('template.useTemplate')}
                 </Button>
@@ -184,7 +188,7 @@ const Templates = () => {
       <TemplateUseDialog
         isOpen={isUseOpen}
         onClose={() => setIsUseOpen(false)}
-        templateId={useTemplateId}
+        template={selectedTemplate}
       />
     </DashboardLayout>
   );
