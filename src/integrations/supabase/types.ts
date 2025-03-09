@@ -9,48 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      admin_actions: {
-        Row: {
-          action_type: string
-          admin_id: string
-          created_at: string | null
-          details: Json | null
-          id: string
-          target_user_id: string | null
-        }
-        Insert: {
-          action_type: string
-          admin_id: string
-          created_at?: string | null
-          details?: Json | null
-          id?: string
-          target_user_id?: string | null
-        }
-        Update: {
-          action_type?: string
-          admin_id?: string
-          created_at?: string | null
-          details?: Json | null
-          id?: string
-          target_user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "admin_actions_admin_id_fkey"
-            columns: ["admin_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "admin_actions_target_user_id_fkey"
-            columns: ["target_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       forms: {
         Row: {
           created_at: string | null
@@ -101,7 +59,6 @@ export type Database = {
           email: string | null
           id: string
           onboarding_completed: boolean | null
-          role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
         }
         Insert: {
@@ -112,7 +69,6 @@ export type Database = {
           email?: string | null
           id: string
           onboarding_completed?: boolean | null
-          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
         Update: {
@@ -123,7 +79,6 @@ export type Database = {
           email?: string | null
           id?: string
           onboarding_completed?: boolean | null
-          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
         }
         Relationships: []
@@ -274,15 +229,10 @@ export type Database = {
       }
     }
     Functions: {
-      get_user_role: {
-        Args: {
-          user_id: string
-        }
-        Returns: Database["public"]["Enums"]["user_role"]
-      }
+      [_ in never]: never
     }
     Enums: {
-      user_role: "user" | "admin" | "support"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never

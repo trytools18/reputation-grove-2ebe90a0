@@ -12,19 +12,20 @@ import SurveyResults from "./pages/SurveyResults";
 import Templates from "./pages/Templates";
 import AccountSettings from "./pages/AccountSettings";
 import DashboardLayout from "./components/DashboardLayout";
-import AdminDashboard from "./pages/AdminDashboard";
 import { useSession } from "./lib/auth";
 import { Toaster } from "@/components/ui/toaster";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
 import { LanguageProvider } from "./lib/languageContext";
 
+// Create a loading component for suspense fallback
 const LoadingFallback = () => (
   <div className="h-screen flex items-center justify-center">
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
   </div>
 );
 
+// Protected route wrapper component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useSession();
   
@@ -39,6 +40,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Dashboard route wrapper component
 const DashboardRoute = ({ children, showBackButton = false }: { children: React.ReactNode, showBackButton?: boolean }) => {
   return (
     <ProtectedRoute>
@@ -61,11 +63,17 @@ const App = () => {
       <Router>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            
+            {/* Redirect legacy auth routes to the consolidated auth page */}
             <Route path="/login" element={<Navigate to="/auth" replace />} />
             <Route path="/signup" element={<Navigate to="/auth?tab=signup" replace />} />
+            
             <Route path="/survey/:id" element={<SurveyView />} />
+            
+            {/* Protected dashboard routes */}
             <Route path="/dashboard" element={
               <DashboardRoute>
                 <Dashboard />
@@ -106,13 +114,8 @@ const App = () => {
                 <Templates />
               </DashboardRoute>
             } />
-            <Route path="/admin" element={
-              <ProtectedRoute>
-                <DashboardLayout>
-                  <AdminDashboard />
-                </DashboardLayout>
-              </ProtectedRoute>
-            } />
+            
+            {/* Fallback route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
