@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Chip } from "./ui/chip"
-import { ArrowRight, Star } from "lucide-react"
+import { ArrowRight, Star, UserRound, Users, User, SmilePlus } from "lucide-react"
 import { useLanguage } from '@/lib/languageContext'
 
 const Hero = () => {
@@ -58,9 +58,19 @@ const Hero = () => {
 
           <div className={`flex items-center space-x-4 mb-16 transition-all duration-1000 delay-600 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-12'}`}>
             <div className="flex -space-x-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" />
-              ))}
+              {/* Replace grey circles with user icons */}
+              <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center">
+                <UserRound className="w-5 h-5 text-gray-500" />
+              </div>
+              <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center">
+                <Users className="w-5 h-5 text-gray-500" />
+              </div>
+              <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center">
+                <User className="w-5 h-5 text-gray-500" />
+              </div>
+              <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center">
+                <SmilePlus className="w-5 h-5 text-gray-500" />
+              </div>
             </div>
             <div className="flex items-center space-x-1">
               <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
