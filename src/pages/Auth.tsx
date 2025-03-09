@@ -106,8 +106,8 @@ const Auth = () => {
             variant="ghost" 
             size="sm" 
             className="absolute left-0 top-0 p-1"
-            onClick={() => navigate(-1)}
-            aria-label="Go back"
+            onClick={() => navigate("/")}
+            aria-label="Go to home page"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
