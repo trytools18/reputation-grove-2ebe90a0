@@ -2,11 +2,14 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Chip } from "./ui/chip"
-import { ArrowRight, Star } from "lucide-react"
+import { ArrowRight, Star, Play } from "lucide-react"
 import { useLanguage } from '@/lib/languageContext'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { toast } from "sonner"
 
 const Hero = () => {
   const [isLoaded, setIsLoaded] = useState(false)
+  const [showDemoDialog, setShowDemoDialog] = useState(false)
   const { t } = useLanguage()
 
   useEffect(() => {
@@ -16,6 +19,17 @@ const Hero = () => {
     
     return () => clearTimeout(timer)
   }, [])
+
+  const handleGetStarted = () => {
+    // This would typically navigate to a signup page or onboarding flow
+    // For now, we'll just show a toast notification
+    toast.success(t('home.startedSuccess'), {
+      description: t('home.redirectingToSignup')
+    })
+    
+    // You could add navigation here, for example:
+    // window.location.href = "/signup" or using a router
+  }
 
   return (
     <div className="relative pt-28 pb-20 overflow-hidden">
@@ -47,13 +61,39 @@ const Hero = () => {
           </p>
 
           <div className={`flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-12 transition-all duration-1000 delay-500 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-10'}`}>
-            <Button size="lg" className="rounded-full px-6 group">
+            <Button 
+              size="lg" 
+              className="rounded-full px-6 group"
+              onClick={handleGetStarted}
+            >
               {t('home.getStartedToday')}
               <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
             </Button>
-            <Button size="lg" variant="outline" className="rounded-full px-6">
-              {t('home.viewDemo')}
-            </Button>
+            
+            <Dialog open={showDemoDialog} onOpenChange={setShowDemoDialog}>
+              <DialogTrigger asChild>
+                <Button size="lg" variant="outline" className="rounded-full px-6 group">
+                  {t('home.viewDemo')}
+                  <Play size={16} className="ml-2 transition-transform group-hover:scale-110" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[900px] h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle>{t('home.demoTitle')}</DialogTitle>
+                  <DialogDescription>
+                    {t('home.demoDescription')}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex-1 overflow-hidden rounded-md border">
+                  <div className="h-full w-full bg-gray-100 flex items-center justify-center">
+                    <div className="text-center">
+                      <h3 className="text-xl font-semibold mb-2">{t('home.interactiveDemoTitle')}</h3>
+                      <p className="text-muted-foreground">{t('home.interactiveDemoText')}</p>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className={`flex items-center space-x-4 mb-16 transition-all duration-1000 delay-600 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-12'}`}>

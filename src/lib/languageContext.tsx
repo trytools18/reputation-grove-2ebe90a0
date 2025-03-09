@@ -68,6 +68,12 @@ export const translations = {
     'home.conversionRate': 'Conversion Rate',
     'home.ratingBreakdown': 'Rating Breakdown',
     'home.recentFeedback': 'Recent Feedback',
+    'home.startedSuccess': 'Getting started!',
+    'home.redirectingToSignup': 'Redirecting you to our signup page...',
+    'home.demoTitle': 'Product Demo',
+    'home.demoDescription': 'Experience how our platform helps you collect and manage customer feedback',
+    'home.interactiveDemoTitle': 'Interactive Demo',
+    'home.interactiveDemoText': 'This is where the demo content would be displayed',
 
     // Features section
     'features.title': 'Features',
@@ -396,6 +402,12 @@ export const translations = {
     'home.conversionRate': 'Ποσοστό Μετατροπής',
     'home.ratingBreakdown': 'Ανάλυση Βαθμολογίας',
     'home.recentFeedback': 'Πρόσφατα Σχόλια',
+    'home.startedSuccess': 'Ξεκινάμε!',
+    'home.redirectingToSignup': 'Ανακατεύθυνση στη σελίδα εγγρ��φής...',
+    'home.demoTitle': 'Επίδειξη Προϊόντος',
+    'home.demoDescription': 'Δείτε πώς η πλατφόρμα μας σας βοηθά να συλλέγετε και να διαχειρίζεστε τα σχόλια των πελατών',
+    'home.interactiveDemoTitle': 'Διαδραστική Επίδειξη',
+    'home.interactiveDemoText': 'Εδώ θα εμφανιζόταν το περιεχόμενο της επίδειξης',
 
     // Features section
     'features.title': 'Χαρακτηριστικά',
