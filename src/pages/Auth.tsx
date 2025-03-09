@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -7,15 +8,11 @@ import { Label } from "@/components/ui/label";
 import { signIn, signUp, useSession, getUserProfile } from "@/lib/auth";
 import { toast } from "sonner";
 
-interface AuthProps {
-  isSignUp?: boolean;
-}
-
-const Auth = ({ isSignUp }: AuthProps = {}) => {
+const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isLoading } = useSession();
-  const [activeTab, setActiveTab] = useState<"login" | "signup">(isSignUp ? "signup" : "login");
+  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form states

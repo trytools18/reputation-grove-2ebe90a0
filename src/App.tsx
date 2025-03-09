@@ -34,7 +34,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/auth" replace />;
   }
   
   return <>{children}</>;
@@ -65,9 +65,12 @@ const App = () => {
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Auth />} />
-            <Route path="/signup" element={<Auth isSignUp />} />
-            <Route path="/auth" element={<Auth />} /> {/* Add this route to handle /auth links */}
+            <Route path="/auth" element={<Auth />} />
+            
+            {/* Redirect legacy auth routes to the consolidated auth page */}
+            <Route path="/login" element={<Navigate to="/auth" replace />} />
+            <Route path="/signup" element={<Navigate to="/auth?tab=signup" replace />} />
+            
             <Route path="/survey/:id" element={<SurveyView />} />
             
             {/* Protected dashboard routes */}
