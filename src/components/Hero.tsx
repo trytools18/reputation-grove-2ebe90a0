@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Chip } from "./ui/chip"
-import { ArrowRight, Star, UserRound, Users, User, SmilePlus } from "lucide-react"
+import { ArrowRight, Star } from "lucide-react"
 import { useLanguage } from '@/lib/languageContext'
 
 const Hero = () => {
@@ -58,18 +58,34 @@ const Hero = () => {
 
           <div className={`flex items-center space-x-4 mb-16 transition-all duration-1000 delay-600 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-12'}`}>
             <div className="flex -space-x-2">
-              {/* Replace grey circles with user icons */}
-              <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center">
-                <UserRound className="w-5 h-5 text-gray-500" />
+              {/* Happy people avatars */}
+              <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8c21pbGluZyUyMGF2YXRhcnxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=100&q=60" 
+                  alt="Happy customer" 
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center">
-                <Users className="w-5 h-5 text-gray-500" />
+              <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NXx8c21pbGluZyUyMGF2YXRhcnxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=100&q=60" 
+                  alt="Happy customer" 
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center">
-                <User className="w-5 h-5 text-gray-500" />
+              <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8c21pbGluZyUyMGF2YXRhcnxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=100&q=60" 
+                  alt="Happy customer" 
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center">
-                <SmilePlus className="w-5 h-5 text-gray-500" />
+              <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8OHx8c21pbGluZyUyMGZhY2V8ZW58MHx8MHx8&auto=format&fit=crop&w=100&q=60" 
+                  alt="Happy customer" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
             <div className="flex items-center space-x-1">
