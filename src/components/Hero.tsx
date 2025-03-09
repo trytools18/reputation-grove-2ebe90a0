@@ -6,11 +6,13 @@ import { ArrowRight, Star, Play } from "lucide-react"
 import { useLanguage } from '@/lib/languageContext'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { toast } from "sonner"
+import { useNavigate } from "react-router-dom"
 
 const Hero = () => {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showDemoDialog, setShowDemoDialog] = useState(false)
   const { t } = useLanguage()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -21,14 +23,12 @@ const Hero = () => {
   }, [])
 
   const handleGetStarted = () => {
-    // This would typically navigate to a signup page or onboarding flow
-    // For now, we'll just show a toast notification
+    // Navigate to signup page
+    navigate("/signup")
+    
     toast.success(t('home.startedSuccess'), {
       description: t('home.redirectingToSignup')
     })
-    
-    // You could add navigation here, for example:
-    // window.location.href = "/signup" or using a router
   }
 
   return (

@@ -1,11 +1,33 @@
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Facebook, Instagram, Twitter } from "lucide-react"
 import { useLanguage } from '@/lib/languageContext'
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
 const Footer = () => {
   const { t } = useLanguage()
+  const navigate = useNavigate()
+  const [email, setEmail] = useState("")
+
+  const handleGetStartedFree = () => {
+    navigate("/signup")
+  }
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) {
+      toast.error(t('footer.emailRequired'))
+      return
+    }
+    
+    // Here you would typically add newsletter subscription logic
+    toast.success(t('footer.subscriptionSuccess'), {
+      description: t('footer.subscriptionDesc')
+    })
+    setEmail("")
+  }
 
   return (
     <footer className="bg-gray-50 pt-20 pb-10">
@@ -18,7 +40,11 @@ const Footer = () => {
             <p className="mb-6 max-w-2xl mx-auto">
               {t('home.joinHundreds')}
             </p>
-            <Button size="lg" className="bg-white text-foreground hover:bg-white/90 rounded-full px-6">
+            <Button 
+              size="lg" 
+              className="bg-white text-foreground hover:bg-white/90 rounded-full px-6"
+              onClick={handleGetStartedFree}
+            >
               {t('home.getStartedFree')}
             </Button>
           </div>
@@ -37,14 +63,16 @@ const Footer = () => {
             </p>
             <div className="mb-6">
               <p className="font-medium mb-2">{t('footer.subscribeNewsletter')}</p>
-              <div className="flex space-x-2">
+              <form onSubmit={handleSubscribe} className="flex space-x-2">
                 <Input 
                   type="email" 
                   placeholder={t('footer.enterEmail')} 
-                  className="rounded-full bg-white" 
+                  className="rounded-full bg-white"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
-                <Button className="rounded-full">{t('footer.subscribe')}</Button>
-              </div>
+                <Button type="submit" className="rounded-full">{t('footer.subscribe')}</Button>
+              </form>
             </div>
           </div>
 

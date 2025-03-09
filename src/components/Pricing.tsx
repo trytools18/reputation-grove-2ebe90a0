@@ -3,6 +3,7 @@ import React from 'react';
 import { Check, X } from 'lucide-react';
 import { useLanguage } from '@/lib/languageContext';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 export interface PricingCardProps {
   tier: string;
@@ -24,6 +25,11 @@ const PricingCard: React.FC<PricingCardProps> = ({
   currency = '€',
 }) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    navigate('/signup', { state: { selectedPlan: tier } });
+  };
 
   return (
     <div
@@ -67,7 +73,10 @@ const PricingCard: React.FC<PricingCardProps> = ({
           </li>
         ))}
       </ul>
-      <button className="bg-primary text-primary-foreground font-semibold py-2 px-4 rounded hover:bg-primary-dark transition-colors w-full">
+      <button 
+        className="bg-primary text-primary-foreground font-semibold py-2 px-4 rounded hover:bg-primary-dark transition-colors w-full"
+        onClick={handleGetStarted}
+      >
         {t('pricing.getStarted')}
       </button>
     </div>
