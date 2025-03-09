@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn, signUp, useSession, getUserProfile } from "@/lib/auth";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -100,7 +101,16 @@ const Auth = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
+        <div className="text-center relative">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="absolute left-0 top-0 p-1"
+            onClick={() => navigate(-1)}
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
             {activeTab === "login" ? "Log in to your account" : "Create a new account"}
           </h2>
