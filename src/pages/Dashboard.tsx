@@ -1,13 +1,12 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Pie, PieChart, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
-import { PlusCircle, BarChart as BarChartIcon, PieChart as PieChartIcon, ArrowUpRight, Trash2, BarChart2 } from "lucide-react";
+import { PlusCircle, BarChart as BarChartIcon, PieChart as PieChartIcon, ArrowUpRight, Trash2, BarChart2, ShieldAlert } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useSession, useUserProfile } from "@/lib/auth";
+import { useSession, useUserProfile, useIsAdmin } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -22,6 +21,7 @@ const Dashboard = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const { user } = useSession();
   const { profile } = useUserProfile();
+  const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -156,6 +156,16 @@ const Dashboard = () => {
           <p className="text-muted-foreground mt-1">Monitor your feedback and analytics</p>
         </div>
         <div className="flex space-x-2">
+          {isAdmin && (
+            <Button 
+              onClick={() => navigate("/admin")}
+              variant="outline"
+              className="bg-red-100 text-red-800 hover:bg-red-200 border-red-300"
+            >
+              <ShieldAlert className="mr-2 h-4 w-4" />
+              Admin Dashboard
+            </Button>
+          )}
           <Button 
             onClick={() => navigate("/templates")}
             variant="outline"

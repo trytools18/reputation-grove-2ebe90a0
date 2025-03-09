@@ -2,6 +2,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 
+export type UserRole = 'user' | 'admin' | 'support';
+
 export type AuthSession = {
   user: User | null;
   isLoading: boolean;
@@ -28,6 +30,7 @@ export type UserProfile = {
   business_category?: string;
   city?: string;
   onboarding_completed?: boolean;
+  role: UserRole;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -204,4 +207,84 @@ export function useUserProfile() {
       }
     }
   }};
+}
+
+export async function getUserProfiles(): Promise<UserProfile[]> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Error fetching user profiles:", error);
+    throw error;
+  }
+
+  return data as UserProfile[];
+}
+
+export async function logAdminAction(actionType: string, targetUserId?: string, details?: any) {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  const { error } = await supabase
+    .from('admin_actions')
+    .insert({
+      admin_id: user.id,
+      action_type: actionType,
+      target_user_id: targetUserId,
+      details
+    });
+
+  if (error) {
+    console.error("Error logging admin action:", error);
+    throw error;
+  }
+
+  return true;
+}
+
+export async function impersonateUser(userId: string) {
+  // First log this admin action
+  await logAdminAction('impersonate_user', userId);
+  
+  // For security, verify again that the current user is an admin
+  const currentProfile = await getUserProfile();
+  if (!currentProfile || currentProfile.role !== 'admin') {
+    throw new Error("Unauthorized: Only admins can impersonate users");
+  }
+  
+  // Store the admin's ID in local storage for returning later
+  localStorage.setItem('adminImpersonating', 'true');
+  localStorage.setItem('originalAdminId', currentProfile.id);
+  
+  // Sign in as the target user
+  // Note: This is a simplified implementation - in production you'd use more secure methods
+  // like JWT exchange through a secure server endpoint
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: userId, // This is a placeholder - you'll need a real auth mechanism
+    password: 'dummy', // This won't work as-is - you need a real implementation
+  });
+  
+  if (error) {
+    throw new Error("Unable to impersonate user: " + error.message);
+  }
+  
+  return data;
+}
+
+export function useIsAdmin() {
+  const { profile, isLoading, error } = useUserProfile();
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  
+  useEffect(() => {
+    if (profile && !isLoading && !error) {
+      setIsAdmin(profile.role === 'admin');
+    }
+  }, [profile, isLoading, error]);
+  
+  return { isAdmin, isLoading, error };
 }
