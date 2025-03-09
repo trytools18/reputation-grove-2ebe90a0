@@ -7,17 +7,21 @@ import { cn } from '@/lib/utils';
 export interface PricingCardProps {
   tier: string;
   price: number;
+  originalPrice?: number;
   description: string;
   features: { name: string; available: boolean }[];
   mostPopular?: boolean;
+  currency?: string;
 }
 
 const PricingCard: React.FC<PricingCardProps> = ({
   tier,
   price,
+  originalPrice,
   description,
   features,
   mostPopular = false,
+  currency = '€',
 }) => {
   const { t } = useLanguage();
 
@@ -36,9 +40,19 @@ const PricingCard: React.FC<PricingCardProps> = ({
       <h3 className="text-2xl font-semibold mb-2">
         {t(`pricing.${tier}.title`) || tier.charAt(0).toUpperCase() + tier.slice(1)}
       </h3>
-      <div className="text-5xl font-bold mb-4">
-        ${price}
-        <span className="text-sm text-gray-500">/{t('pricing.mo')}</span>
+      <div className="text-5xl font-bold mb-4 flex items-end">
+        {originalPrice ? (
+          <>
+            <span className="text-5xl">{currency}{price}</span>
+            <span className="text-lg text-gray-500 line-through ml-2">{currency}{originalPrice}</span>
+            <span className="text-sm text-gray-500 ml-1">/{t('pricing.mo')}</span>
+          </>
+        ) : (
+          <>
+            {currency}{price}
+            <span className="text-sm text-gray-500">/{t('pricing.mo')}</span>
+          </>
+        )}
       </div>
       <p className="text-gray-600 mb-6">{description}</p>
       <ul className="mb-6">

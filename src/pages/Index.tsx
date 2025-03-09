@@ -30,10 +30,12 @@ const Index = () => {
         { name: "customQR", available: false },
         { name: "advancedAnalytics", available: false },
       ],
+      currency: "€",
     },
     {
       tier: "pro",
-      price: 19,
+      price: 9,
+      originalPrice: 19,
       description: t('pricing.proDesc'),
       features: [
         { name: "basicSurvey", available: true },
@@ -45,10 +47,12 @@ const Index = () => {
         { name: "priorityEmail", available: true },
       ],
       mostPopular: true,
+      currency: "€",
     },
     {
       tier: "premium",
-      price: 49,
+      price: 19,
+      originalPrice: 49,
       description: t('pricing.premiumDesc'),
       features: [
         { name: "everythingPro", available: true },
@@ -59,6 +63,7 @@ const Index = () => {
         { name: "apiAccess", available: true },
         { name: "dedicatedManager", available: true },
       ],
+      currency: "€",
     },
   ];
 
@@ -82,9 +87,11 @@ const Index = () => {
                 key={tier.tier}
                 tier={tier.tier}
                 price={tier.price}
+                originalPrice={tier.originalPrice}
                 description={tier.description}
                 features={tier.features}
                 mostPopular={tier.mostPopular}
+                currency={tier.currency}
               />
             ))}
           </div>
