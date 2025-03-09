@@ -33,7 +33,9 @@ const PricingCard: React.FC<PricingCardProps> = ({
           {t('pricing.mostPopular')}
         </div>
       )}
-      <h3 className="text-2xl font-semibold mb-2">{t(`pricing.${tier}.title`)}</h3>
+      <h3 className="text-2xl font-semibold mb-2">
+        {t(`pricing.${tier}.title`) || tier.charAt(0).toUpperCase() + tier.slice(1)}
+      </h3>
       <div className="text-5xl font-bold mb-4">
         ${price}
         <span className="text-sm text-gray-500">/{t('pricing.mo')}</span>
