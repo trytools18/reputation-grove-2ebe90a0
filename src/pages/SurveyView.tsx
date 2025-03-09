@@ -31,18 +31,34 @@ const SurveyView = () => {
     if (shouldRedirect && redirectUrl) {
       // Delayed redirect to ensure toast is seen
       const timer = setTimeout(() => {
-        window.open(redirectUrl, '_blank');
+        // For iOS/Safari compatibility - use window.location instead of window.open
+        window.location.href = redirectUrl;
       }, 1500);
       
       return () => clearTimeout(timer);
     }
   }, [shouldRedirect, redirectUrl]);
 
-  // Function to ensure we have an absolute URL
+  // Function to ensure we have an absolute URL and handle Google Maps URLs specifically
   function ensureAbsoluteUrl(url: string): string {
-    if (url && !url.match(/^https?:\/\//i)) {
+    // Handle empty URLs
+    if (!url || url.trim() === '') {
+      return '';
+    }
+    
+    // If it's a Google Maps URL or contains maps.google.com, ensure it's properly formatted
+    if (url.includes('maps.google') || url.includes('goo.gl/maps')) {
+      // If it's just a location query and not a full URL, format it for maps
+      if (!url.match(/^https?:\/\//i)) {
+        return `https://maps.google.com/maps?q=${encodeURIComponent(url)}`;
+      }
+    }
+    
+    // Standard URL formatting for non-map URLs
+    if (!url.match(/^https?:\/\//i)) {
       return `https://${url}`;
     }
+    
     return url;
   }
 
@@ -197,7 +213,9 @@ const SurveyView = () => {
       
       // Check if the rating meets the threshold for Google Maps redirection
       if (averageRating >= survey.minimum_positive_rating && survey.google_maps_url) {
+        // Properly format the URL for iOS/Safari compatibility
         const absoluteUrl = ensureAbsoluteUrl(survey.google_maps_url);
+        console.log("Redirecting to:", absoluteUrl); // Added for debugging
         setRedirectUrl(absoluteUrl);
         setShouldRedirect(true);
         
