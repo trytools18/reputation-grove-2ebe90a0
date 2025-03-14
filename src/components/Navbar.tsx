@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Menu, X, LogOut, LayoutDashboard } from "lucide-react"
@@ -79,11 +80,7 @@ const Navbar = () => {
           <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
             {t('nav.about')}
           </a>
-          {user && (
-            <Link to="/dashboard" className="text-foreground/80 hover:text-foreground transition-colors">
-              {t('nav.dashboard')}
-            </Link>
-          )}
+          {/* Removed dashboard link from here */}
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
@@ -156,15 +153,7 @@ const Navbar = () => {
             >
               {t('nav.about')}
             </a>
-            {user && (
-              <Link 
-                to="/dashboard" 
-                className="py-2 text-foreground/80 hover:text-foreground transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('nav.dashboard')}
-              </Link>
-            )}
+            {/* Removed dashboard link from mobile menu as well */}
             <div className="pt-4 flex flex-col space-y-3">
               {isLoading ? (
                 <div className="h-10 w-full bg-gray-200 animate-pulse rounded-full"></div>
