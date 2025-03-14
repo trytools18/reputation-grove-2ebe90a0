@@ -81,9 +81,8 @@ const Navbar = () => {
             {t('nav.about')}
           </a>
           <a href="/contact" className="text-foreground/80 hover:text-foreground transition-colors">
-            {t('nav.contact') || 'Contact'}
+            {t('nav.contact')}
           </a>
-          {/* Removed dashboard link from here */}
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
@@ -161,9 +160,8 @@ const Navbar = () => {
               className="py-2 text-foreground/80 hover:text-foreground transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              {t('nav.contact') || 'Contact'}
+              {t('nav.contact')}
             </a>
-            {/* Removed dashboard link from mobile menu as well */}
             <div className="pt-4 flex flex-col space-y-3">
               {isLoading ? (
                 <div className="h-10 w-full bg-gray-200 animate-pulse rounded-full"></div>

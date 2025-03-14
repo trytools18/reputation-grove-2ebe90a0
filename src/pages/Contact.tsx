@@ -46,8 +46,8 @@ const Contact = () => {
     if (data.website && data.website.length > 0) {
       // Fake success to fool the bot
       toast({
-        title: "Message sent",
-        description: "Thank you for your message. We'll get back to you soon.",
+        title: t('contact.successTitle'),
+        description: t('contact.successMessage'),
       });
       return;
     }
@@ -67,8 +67,8 @@ const Contact = () => {
       if (error) throw error;
 
       toast({
-        title: "Message sent",
-        description: "Thank you for your message. We'll get back to you soon.",
+        title: t('contact.successTitle'),
+        description: t('contact.successMessage'),
       });
       
       form.reset({
@@ -81,8 +81,8 @@ const Contact = () => {
     } catch (error: any) {
       console.error("Error sending message:", error);
       toast({
-        title: "Error sending message",
-        description: "There was a problem sending your message. Please try again.",
+        title: t('contact.errorTitle'),
+        description: t('contact.errorMessage'),
         variant: "destructive",
       });
     } finally {
@@ -97,39 +97,39 @@ const Contact = () => {
       <main className="pt-32 pb-20 px-4">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
+            <h1 className="text-4xl font-bold mb-4">{t('contact.title')}</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Have questions or need assistance? Fill out the form below and we'll get back to you as soon as possible.
+              {t('contact.subtitle')}
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold">Get in Touch</h2>
+              <h2 className="text-2xl font-semibold">{t('contact.getInTouch')}</h2>
               <p className="text-muted-foreground">
-                Our team is here to help with any questions you might have about our services or to discuss how we can help improve your business reputation.
+                {t('contact.teamHelp')}
               </p>
               
               <div className="space-y-4 mt-8">
                 <div>
-                  <h3 className="font-medium">Email</h3>
-                  <p className="text-primary">support@repute.com</p>
+                  <h3 className="font-medium">{t('contact.email')}</h3>
+                  <p className="text-primary">{t('contact.emailAddress')}</p>
                 </div>
                 
                 <div>
-                  <h3 className="font-medium">Office Hours</h3>
-                  <p>Monday to Friday, 9:00 AM - 5:00 PM</p>
+                  <h3 className="font-medium">{t('contact.officeHours')}</h3>
+                  <p>{t('contact.officeHoursValue')}</p>
                 </div>
                 
                 <div>
-                  <h3 className="font-medium">Location</h3>
-                  <p>123 Reputation Street, Innovation District, 10001</p>
+                  <h3 className="font-medium">{t('contact.location')}</h3>
+                  <p>{t('contact.locationValue')}</p>
                 </div>
               </div>
             </div>
             
             <div className="bg-card border rounded-lg p-6 shadow-sm">
-              <h2 className="text-2xl font-semibold mb-6">Send a Message</h2>
+              <h2 className="text-2xl font-semibold mb-6">{t('contact.sendMessage')}</h2>
               
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -138,9 +138,9 @@ const Contact = () => {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Name</FormLabel>
+                        <FormLabel>{t('contact.name')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Your name" {...field} />
+                          <Input placeholder={t('contact.name')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -152,7 +152,7 @@ const Contact = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t('contact.email')}</FormLabel>
                         <FormControl>
                           <Input placeholder="your@email.com" type="email" {...field} />
                         </FormControl>
@@ -166,9 +166,9 @@ const Contact = () => {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone (optional)</FormLabel>
+                        <FormLabel>{t('contact.phone')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Your phone number" {...field} />
+                          <Input placeholder={t('contact.phone')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -180,10 +180,10 @@ const Contact = () => {
                     name="message"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Message</FormLabel>
+                        <FormLabel>{t('contact.message')}</FormLabel>
                         <FormControl>
                           <Textarea 
-                            placeholder="What can we help you with?" 
+                            placeholder={t('contact.messagePlaceholder')} 
                             className="min-h-[120px]" 
                             {...field} 
                           />
@@ -214,7 +214,7 @@ const Contact = () => {
                     className="w-full mt-6" 
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Sending..." : "Send Message"}
+                    {isSubmitting ? t('contact.sending') : t('contact.send')}
                   </Button>
                 </form>
               </Form>
