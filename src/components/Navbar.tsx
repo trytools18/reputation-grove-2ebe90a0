@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Menu, X, LogOut } from "lucide-react"
@@ -14,12 +15,6 @@ const Navbar = () => {
   const navigate = useNavigate()
   const { t } = useLanguage()
   const { toast } = useToast()
-
-
-
-
-
-
 
   useEffect(() => {
     const handleScroll = () => {
@@ -70,7 +65,18 @@ const Navbar = () => {
       <div className="container mx-auto px-6 flex items-center justify-between">
         <a href="/" className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-@@ -80,20 +73,13 @@ const Navbar = () => {
+            <span className="text-primary-foreground font-bold text-sm">R</span>
+          </div>
+          <span className="font-bold text-xl">Repute</span>
+        </a>
+
+        <nav className="hidden md:flex items-center space-x-8">
+          <a href="#features" className="text-foreground/80 hover:text-foreground transition-colors">
+            {t('nav.features')}
+          </a>
+          <a href="#pricing" className="text-foreground/80 hover:text-foreground transition-colors">
+            {t('nav.pricing')}
+          </a>
           <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
             {t('nav.about')}
           </a>
@@ -91,7 +97,8 @@ const Navbar = () => {
               <span className="text-sm font-medium">Hi, {user.email}</span>
               <Button variant="outline" className="rounded-full px-5 flex items-center gap-2" onClick={handleLogout}>
                 <LogOut size={16} />
-@@ -102,93 +88,58 @@ const Navbar = () => {
+                {t('common.logout')}
+              </Button>
               <Button className="rounded-full px-5" onClick={handleDashboard}>
                 {t('nav.dashboard')}
               </Button>
