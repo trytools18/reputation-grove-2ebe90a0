@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'en' | 'el';
@@ -544,4 +545,228 @@ export const translations = {
     'survey.settings': 'Ρυθμίσεις',
     'survey.preview': 'Προεπισκόπηση',
     'survey.saving': 'Αποθήκευση...',
-    'survey.saveSurvey': 'Αποθήκευση Έρευνας
+    'survey.saveSurvey': 'Αποθήκευση Έρευνας',
+    'survey.noQuestions': 'Δεν έχουν προστεθεί ερωτήσεις ακόμα',
+    'survey.addFirst': 'Προσθέστε την πρώτη σας ερώτηση',
+    'survey.surveyInfo': 'Πληροφορίες Έρευνας',
+    'survey.surveyTitle': 'Τίτλος Έρευνας',
+    'survey.surveyDescription': 'Περιγραφή Έρευνας',
+    'survey.questions': 'Ερωτήσεις',
+    'survey.required': 'Απαιτείται',
+    'survey.optional': 'Προαιρετικό',
+    'survey.rating': 'Βαθμολογία',
+    'survey.multipleChoice': 'Πολλαπλής Επιλογής',
+    'survey.textResponse': 'Απάντηση Κειμένου',
+    'survey.maxRating': 'Μέγιστη βαθμολογία',
+    'survey.googleMapsUrl': 'URL Google Maps',
+    'survey.googleUrlRequired': 'Απαιτείται URL Google Maps',
+    'survey.redirectThreshold': 'Ανακατεύθυνση πελατών στο Google Maps όταν η μέση βαθμολογία είναι τουλάχιστον',
+    'survey.redirectExplain': 'Οι πελάτες που σας δίνουν βαθμολογία {threshold} ή υψηλότερη θα προσκληθούν να αφήσουν μια κριτική στο Google.',
+    'survey.enterGoogleUrl': 'Εισάγετε το URL κριτικών σας στο Google Maps. Εδώ θα ανακατευθύνονται οι πελάτες.',
+    'survey.createSurvey': 'Δημιουργία Έρευνας',
+    'survey.createCustomSurvey': 'Δημιουργία Προσαρμοσμένης Έρευνας',
+    'survey.shareSurvey': 'Κοινοποίηση Έρευνας',
+    'survey.customerSatisfaction': 'Έρευνα Ικανοποίησης Πελατών',
+    'survey.designCustomize': 'Σχεδιάστε και προσαρμόστε την έρευνα σχολίων σας',
+    'survey.addQuestion': 'Προσθήκη ερώτησης',
+
+    // Template Page
+    'template.title': 'Πρότυπα Ερευνών',
+    'template.description': 'Επιλέξτε από προκατασκευασμένα πρότυπα για να ξεκινήσετε γρήγορα',
+    'template.coffeeShop': 'Εμπειρία Καφετέριας',
+    'template.coffeeDesc': 'Μια σύντομη έρευνα για τη συλλογή σχολίων σχετικά με την επίσκεψή σας',
+    'template.coffeeLong': 'Ένα προδιαμορφωμένο πρότυπο με ερωτήσεις που επικεντρώνονται στα σχόλια για τον καφέ.',
+    'template.haircutSatisfaction': 'Έρευνα Ικανοποίησης Κουρέματος',
+    'template.haircutDesc': 'Μια σύντομη έρευνα για τη συλλογή σχολίων σχετικά με το κούρεμα και την εξυπηρέτηση',
+    'template.haircutLong': 'Ένα προδιαμορφωμένο πρότυπο με ερωτήσεις που επικεντρώνονται στα σχόλια για το κουρείο.',
+    'template.hotelStay': 'Εμπειρία Διαμονής σε Ξενοδοχείο',
+    'template.hotelDesc': 'Μια σύντομη έρευνα για τη συλλογή σχολίων σχετικά με την εμπειρία των επισκεπτών',
+    'template.hotelLong': 'Ένα προδιαμορφωμένο πρότυπο με ερωτήσεις που επικεντρώνονται στα σχόλια για το ξενοδοχείο.',
+    'template.restaurant': 'Ικανοποίηση Πελατών Εστιατορίου',
+    'template.restaurantDesc': 'Μια σύντομη έρευνα για τη συλλογή σχολίων σχετικά με την εμπειρία φαγητού',
+    'template.restaurantLong': 'Ένα προδιαμορφωμένο πρότυπο με ερωτήσεις που επικεντρώνονται στα σχόλια για το εστιατόριο.',
+    'template.useTemplate': 'Χρήση Προτύπου',
+    'template.createFromTemplate': 'Δημιουργία Έρευνας από Πρότυπο',
+    'template.enterBusinessDetails': 'Εισάγετε τα στοιχεία του {type} σας για να δημιουργήσετε μια έρευνα χρησιμοποιώντας το πρότυπο {name}.',
+    'template.businessName': 'Όνομα {type}',
+    'template.enterBusinessName': 'Εισάγετε το όνομα του {type} σας',
+    'template.urlRedirectExplain': 'Αυτό το URL θα χρησιμοποιηθεί για την ανακατεύθυνση των πελατών όταν δίνουν υψηλή βαθμολογία.',
+    'template.creating': 'Δημιουργία...',
+    'template.surveyCreated': 'Η έρευνα δημιουργήθηκε',
+    'template.surveyCreatedDesc': 'Επιτυχής δημιουργία έρευνας από το πρότυπο "{name}"',
+    'template.errorCreating': 'Σφάλμα δημιουργίας έρευνας',
+    'template.errorCreatingDesc': 'Δεν ήταν δυνατή η δημιουργία έρευνας από το πρότυπο',
+
+    // Survey View
+    'surveyView.notFound': 'Η Έρευνα δεν Βρέθηκε',
+    'surveyView.notFoundDesc': 'Η έρευνα που αναζητάτε δεν υπάρχει ή μπορεί να έχει διαγραφεί.',
+    'surveyView.goBack': 'Επιστροφή',
+    'surveyView.shareFeedback': 'Παρακαλούμε μοιραστείτε τα σχόλιά σας μαζί μας',
+    'surveyView.noQuestions': 'Αυτή η έρευνα δεν έχει ακόμα ερωτήσεις.',
+    'surveyView.enterResponse': 'Εισάγετε την απάντησή σας εδώ...',
+    'surveyView.submitting': 'Υποβολή...',
+    'surveyView.submitFeedback': 'Υποβολή Σχολίων',
+    'surveyView.thankYou': 'Ευχαριστούμε!',
+    'surveyView.thankYouDesc': 'Τα σχόλιά σας υποβλήθηκαν με επιτυχία.',
+    'surveyView.redirectingToGoogle': 'Θα ανακατευθυνθείτε στο Google Maps για να αφήσετε μια κριτική σε λίγο...',
+    'surveyView.errorSubmitting': 'Σφάλμα υποβολής έρευνας',
+    'surveyView.answerAtLeastOne': 'Παρακαλούμε απαντήστε τουλάχιστον σε μία ερώτηση',
+    'surveyView.rateExperience': 'Πώς θα βαθμολογούσατε τη συνολική σας εμπειρία;',
+    'surveyView.enjoyMost': 'Τι απολαύσατε περισσότερο κατά την επίσκεψή σας;',
+    'surveyView.foodQuality': 'Ποιότητα φαγητού',
+    'surveyView.service': 'Εξυπηρέτηση',
+    'surveyView.ambiance': 'Ατμόσφαιρα',
+    'surveyView.valueForMoney': 'Σχέση ποιότητας-τιμής',
+    'surveyView.other': 'Άλλο',
+    'surveyView.additionalComments': 'Έχετε κάποια επιπλέον σχόλια ή προτάσεις;',
+
+    // Survey Results
+    'surveyResults.title': 'Αποτελέσματα Έρευνας',
+    'surveyResults.overview': 'Επισκόπηση',
+    'surveyResults.responses': 'Απαντήσεις',
+    'surveyResults.noResponses': 'Δεν υπάρχουν απαντήσεις ακόμα',
+    'surveyResults.waitingForResponses': 'Αναμονή για την πρώτη σας απάντηση',
+    'surveyResults.shareToGetResponses': 'Μοιραστείτε την έρευνά σας για να ξεκινήσετε τη συλλογή απαντήσεων',
+    'surveyResults.individualResponses': 'Μεμονωμένες Απαντήσεις',
+    'surveyResults.viewAllResponses': 'Προβολή όλων των απαντήσεων',
+
+    // Account Settings
+    'account.settings': 'Ρυθμίσεις Λογαριασμού',
+    'account.profile': 'Προφίλ',
+    'account.business': 'Πληροφορίες Επιχείρησης',
+    'account.businessName': 'Όνομα Επιχείρησης',
+    'account.category': 'Κατηγορία Επιχείρησης',
+    'account.city': 'Πόλη',
+    'account.theme': 'Θέμα',
+    'account.language': 'Γλώσσα',
+    'account.saveChanges': 'Αποθήκευση Αλλαγών',
+    'account.profileUpdated': 'Το προφίλ ενημερώθηκε με επιτυχία',
+    'account.errorUpdating': 'Σφάλμα ενημέρωσης προφίλ',
+    'account.businessProfile': 'Προφίλ Επιχείρησης',
+    'account.updateBusinessInfo': 'Ενημερώστε τις πληροφορίες της επιχείρησής σας',
+
+    // Language names (for dropdown)
+    'language.en': 'Αγγλικά',
+    'language.el': 'Ελληνικά',
+
+    // Business Categories
+    'category.restaurant': 'Εστιατόριο',
+    'category.cafe': 'Καφετέρια',
+    'category.retail': 'Κατάστημα Λιανικής',
+    'category.hotel': 'Ξενοδοχείο',
+    'category.barbershop': 'Κουρείο',
+    'category.beautySalon': 'Σαλόνι Ομορφιάς',
+    'category.gym': 'Γυμναστήριο',
+    'category.other': 'Άλλο',
+
+    // Cities
+    'city.athens': 'Αθήνα',
+    'city.thessaloniki': 'Θεσσαλονίκη',
+    'city.patra': 'Πάτρα',
+    'city.heraklion': 'Ηράκλειο',
+    'city.larissa': 'Λάρισα',
+    'city.volos': 'Βόλος',
+    'city.ioannina': 'Ιωάννινα',
+    'city.chania': 'Χανιά',
+    'city.other': 'Άλλη',
+
+    // Pricing section
+    'pricing.title': 'Τιμές',
+    'pricing.heading': 'Απλές, Διαφανείς Τιμές',
+    'pricing.description': 'Επιλέξτε το πακέτο που ταιριάζει καλύτερα στις ανάγκες της επιχείρησής σας. Χωρίς κρυφές χρεώσεις ή περίπλοκες δομές τιμολόγησης.',
+    'pricing.monthly': 'Μηνιαία',
+    'pricing.annual': 'Ετήσια',
+    'pricing.save': 'Εξοικονομήστε 15%',
+    'pricing.mostPopular': 'Πιο Δημοφιλές',
+    'pricing.getStarted': 'Ξεκινήστε',
+    'pricing.mo': 'μήνα',
+    'pricing.saveYear': 'Εξοικονομήστε ${amount}€/έτος',
+    'pricing.free.title': 'Δωρεάν',
+    'pricing.freeDesc': 'Βασικά εργαλεία για μικρές επιχειρήσεις που μόλις ξεκινούν.',
+    'pricing.pro.title': 'Pro',
+    'pricing.proDesc': 'Προηγμένα εργαλεία για αναπτυσσόμενες επιχειρήσεις.',
+    'pricing.premium.title': 'Premium',
+    'pricing.premiumDesc': 'Ολοκληρωμένη λύση για εδραιωμένες επιχειρήσεις.',
+    'pricing.basicSurvey': 'Βασική δημιουργία ερευνών',
+    'pricing.responses100': 'Έως 100 απαντήσεις ανά μήνα',
+    'pricing.basicAnalytics': 'Βασικός πίνακας αναλύσεων',
+    'pricing.emailSupport': 'Υποστήριξη μέσω email',
+    'pricing.unlimitedSurveys': 'Απεριόριστη δημιουργία ερευνών',
+    'pricing.responses1000': 'Έως 1.000 απαντήσεις ανά μήνα',
+    'pricing.googleMapsRedirect': 'Ανακατεύθυνση κριτικών στο Google Maps',
+    'pricing.advancedAnalytics': 'Προηγμένος πίνακας αναλύσεων',
+    'pricing.customQR': 'Προσαρμοσμένοι κωδικοί QR και σύντομοι σύνδεσμοι',
+    'pricing.priorityEmail': 'Προτεραιότητα στην υποστήριξη μέσω email',
+    'pricing.everythingPro': 'Όλα τα χαρακτηριστικά του Pro',
+    'pricing.unlimitedResponses': 'Απεριόριστες απαντήσεις',
+    'pricing.benchmarking': 'Συγκριτική αξιολόγηση ανταγωνισμού',
+    'pricing.industryAverages': 'Μέσοι όροι κλάδου και πόλης',
+    'pricing.customBranding': 'Προσαρμοσμένη επωνυμία',
+    'pricing.apiAccess': 'Πρόσβαση σε API',
+    'pricing.dedicatedManager': 'Αποκλειστικός διαχειριστής λογαριασμού',
+    'pricing.allPlans': 'Όλα τα πακέτα περιλαμβάνουν πρόσβαση στην ομάδα υποστήριξης πελατών, τακτικές ενημερώσεις προϊόντος και τη βάση γνώσεων μας. Χρειάζεστε μια προσαρμοσμένη λύση;',
+    'pricing.contactSales': 'Επικοινωνήστε με την ομάδα πωλήσεων',
+
+    // Contact page
+    'contact.title': 'Επικοινωνία',
+    'contact.subtitle': 'Έχετε ερωτήσεις ή χρειάζεστε βοήθεια; Συμπληρώστε τη φόρμα παρακάτω και θα επικοινωνήσουμε μαζί σας το συντομότερο δυνατό.',
+    'contact.getInTouch': 'Επικοινωνήστε Μαζί μας',
+    'contact.teamHelp': 'Η ομάδα μας είναι εδώ για να σας βοηθήσει με οποιεσδήποτε ερωτήσεις μπορεί να έχετε σχετικά με τις υπηρεσίες μας ή για να συζητήσουμε πώς μπορούμε να βοηθήσουμε στη βελτίωση της φήμης της επιχείρησής σας.',
+    'contact.email': 'Email',
+    'contact.emailAddress': 'support@repute.com',
+    'contact.officeHours': 'Ώρες Γραφείου',
+    'contact.officeHoursValue': 'Δευτέρα έως Παρασκευή, 9:00 πμ - 5:00 μμ',
+    'contact.location': 'Τοποθεσία',
+    'contact.locationValue': 'Οδός Φήμης 123, Περιοχή Καινοτομίας, 10001',
+    'contact.sendMessage': 'Στείλτε ένα Μήνυμα',
+    'contact.name': 'Όνομα',
+    'contact.phone': 'Τηλέφωνο (προαιρετικό)',
+    'contact.message': 'Μήνυμα',
+    'contact.messagePlaceholder': 'Πώς μπορούμε να σας βοηθήσουμε;',
+    'contact.sending': 'Αποστολή...',
+    'contact.send': 'Αποστολή Μηνύματος',
+    'contact.successTitle': 'Το μήνυμα εστάλη',
+    'contact.successMessage': 'Ευχαριστούμε για το μήνυμά σας. Θα επικοινωνήσουμε μαζί σας σύντομα.',
+    'contact.errorTitle': 'Σφάλμα αποστολής μηνύματος',
+    'contact.errorMessage': 'Υπήρξε πρόβλημα κατά την αποστολή του μηνύματός σας. Παρακαλούμε δοκιμάστε ξανά.',
+  },
+};
+
+export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
+  const [language, setLanguage] = useState<Language>(() => {
+    // Try to get language from localStorage
+    const savedLanguage = localStorage.getItem('language') as Language | null;
+    
+    // If there's a saved language and it's valid, use it, otherwise use default
+    return (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'el')) 
+      ? savedLanguage 
+      : defaultLanguage;
+  });
+
+  useEffect(() => {
+    // Save language preference to localStorage when it changes
+    localStorage.setItem('language', language);
+  }, [language]);
+
+  const t = (key: string) => {
+    // Get translation for current language
+    const currentTranslations = translations[language];
+    
+    // Return translation if it exists, otherwise return key
+    return currentTranslations[key] || translations['en'][key] || key;
+  };
+
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+export const useLanguage = () => {
+  const context = useContext(LanguageContext);
+  if (context === undefined) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+};
