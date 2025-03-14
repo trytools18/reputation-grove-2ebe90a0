@@ -12,6 +12,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/lib/languageContext';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 // Contact form schema with validation
 const formSchema = z.object({
@@ -27,6 +29,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const { toast } = useToast();
   const { t } = useLanguage();
   
@@ -42,6 +45,9 @@ const Contact = () => {
   });
 
   const onSubmit = async (data: FormValues) => {
+    // Clear any previous errors
+    setSubmitError(null);
+    
     // Bot detection: if the honeypot field is filled, it's likely a bot
     if (data.website && data.website.length > 0) {
       // Fake success to fool the bot
@@ -55,6 +61,13 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
+      console.log("Submitting form data:", {
+        name: data.name,
+        email: data.email,
+        message: data.message,
+        phone: data.phone || 'Not provided',
+      });
+      
       const { data: result, error } = await supabase.functions.invoke('send-contact-email', {
         body: {
           name: data.name,
@@ -64,7 +77,12 @@ const Contact = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw new Error(error.message || "Failed to send message");
+      }
+
+      console.log("Response from edge function:", result);
 
       toast({
         title: t('contact.successTitle'),
@@ -80,6 +98,7 @@ const Contact = () => {
       });
     } catch (error: any) {
       console.error("Error sending message:", error);
+      setSubmitError(error.message || t('contact.errorMessage'));
       toast({
         title: t('contact.errorTitle'),
         description: t('contact.errorMessage'),
@@ -130,6 +149,16 @@ const Contact = () => {
             
             <div className="bg-card border rounded-lg p-6 shadow-sm">
               <h2 className="text-2xl font-semibold mb-6">{t('contact.sendMessage')}</h2>
+              
+              {submitError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>{t('contact.errorTitle')}</AlertTitle>
+                  <AlertDescription>
+                    {submitError}
+                  </AlertDescription>
+                </Alert>
+              )}
               
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
