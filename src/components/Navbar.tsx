@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Menu, X, LogOut } from "lucide-react"
+import { Menu, X, LogOut, LayoutDashboard } from "lucide-react"
 import { useNavigate, Link } from "react-router-dom"
 import { useSession, signOut } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
@@ -99,8 +98,12 @@ const Navbar = () => {
                 <LogOut size={16} />
                 {t('common.logout')}
               </Button>
-              <Button className="rounded-full px-5" onClick={handleDashboard}>
-                {t('nav.dashboard')}
+              <Button 
+                className="rounded-full w-10 h-10 p-0 flex items-center justify-center" 
+                onClick={handleDashboard}
+                title={t('nav.dashboard')}
+              >
+                <LayoutDashboard size={18} />
               </Button>
             </div>
           ) : (
@@ -171,6 +174,10 @@ const Navbar = () => {
                   <Button variant="outline" className="w-full rounded-full flex items-center justify-center gap-2" onClick={handleLogout}>
                     <LogOut size={16} />
                     {t('common.logout')}
+                  </Button>
+                  <Button className="w-full rounded-full flex items-center justify-center gap-2" onClick={handleDashboard}>
+                    <LayoutDashboard size={18} />
+                    {t('nav.dashboard')}
                   </Button>
                 </>
               ) : (
