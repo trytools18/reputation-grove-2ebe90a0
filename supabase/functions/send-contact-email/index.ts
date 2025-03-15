@@ -40,7 +40,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email notification
     const emailResponse = await resend.emails.send({
       from: "Repute Contact <onboarding@resend.dev>",
-      to: "elnelly938@gmail.com",
+      to: "trytools18@gmail.com",
       subject: "New lead from Repute contact form",
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
